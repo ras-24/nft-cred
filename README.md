@@ -5,7 +5,7 @@ Turn NFTs into Borrowing Power
 This is an example of how you can set up this project locally. To get a local copy up and running, follow these steps.
 
 ### Prerequisites
-1. This project use [pnpm package manager](https://pnpm.io/installation).
+1. This project use [pnpm] package manager(https://pnpm.io/installation).
 
 ### Installation
 1. Clone the repo
