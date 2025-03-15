@@ -29,22 +29,21 @@ This is an example of how you can set up this project locally. To get a local co
    pnpm dev:frontend
    ```
 6. Build frontend project
-```sh
+   ```sh
    pnpm build:frontend
-```
+   ```
 7. Run backend project
-```sh
+   ```sh
    pnpm dev:contracts
-```
+   ```
 8. Build backend project
-```sh
+   ```sh
    pnpm build:contracts
-```
+   ```
 9. Build backend, frontend & run frontend project
-```sh
+   ```sh
    pnpm start
-```
-
+   ```
 
 ## License
 
