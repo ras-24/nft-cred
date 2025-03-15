@@ -1,0 +1,18 @@
+{
+  "name": "nft-cred",
+  "version": "1.0.0",
+  "description": "",
+  "private": true,
+  "main": "index.js",
+  "scripts": {
+    "build:contracts": "cd apps/contracts && forge build",
+    "build:frontend": "cd apps/frontend && pnpm build",
+    "dev:contracts": "cd apps/contracts && forge test",
+    "dev:frontend": "cd apps/frontend && pnpm dev",
+    "start": "pnpm build:contracts && pnpm build:frontend && pnpm dev:frontend"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "packageManager": "pnpm@10.6.3"
+}

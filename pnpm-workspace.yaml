@@ -1,0 +1,2 @@
+packages:
+  - "apps/*"       # Include all subdirectories inside "apps"
