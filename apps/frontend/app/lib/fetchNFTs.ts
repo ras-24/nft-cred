@@ -1,4 +1,5 @@
 import { client } from "./viemClient";
+import { parseAbi } from "viem";
 
 const nftAbi = [
   {
@@ -434,59 +435,76 @@ export async function fetchNFTs(
   contractAddress: `0x${string}`
 ) {
   try {
-    const balance = (await client.readContract({
-      address: contractAddress,
-      abi: nftAbi,
-      functionName: "balanceOf",
-      args: [walletAddress],
-    })) as bigint;
+    const ownedTokenIds = new Set<string>();
 
-    if (balance === BigInt(0)) {
-      return [];
-    }
-
-    console.log(`Wallet owns ${balance.toString()} NFTs.`);
-
-    const ownedTokenIds: Set<string> = new Set();
-
-    // Fetch Transfer events from blockchain
+    // Get past Transfer events for this wallet
     const events = await client.getLogs({
       address: contractAddress,
-      event: {
-        type: "event",
-        name: "Transfer",
-        inputs: [
-          { name: "from", type: "address", indexed: true },
-          { name: "to", type: "address", indexed: true },
-          { name: "tokenId", type: "uint256", indexed: true },
-        ],
-      },
-      fromBlock: "earliest",
+      event: parseAbi([
+        "event Transfer(address indexed from, address indexed to, uint256 indexed tokenId)",
+      ])[0],
+      fromBlock: 0n,
       toBlock: "latest",
-      args: { to: walletAddress },
     });
 
     for (const event of events) {
       const tokenId = event.args?.tokenId;
       if (tokenId !== undefined) {
-        const currentOwner = (await client.readContract({
-          address: contractAddress,
-          abi: nftAbi,
-          functionName: "ownerOf",
-          args: [tokenId],
-        })) as `0x${string}`;
+        try {
+          // Verify if the wallet still owns the token
+          const currentOwner = (await client.readContract({
+            address: contractAddress,
+            abi: nftAbi,
+            functionName: "ownerOf",
+            args: [tokenId],
+          })) as `0x${string}`;
 
-        if (currentOwner.toLowerCase() === walletAddress.toLowerCase()) {
-          ownedTokenIds.add(tokenId.toString());
+          if (currentOwner.toLowerCase() === walletAddress.toLowerCase()) {
+            ownedTokenIds.add(tokenId.toString());
+          }
+        } catch (error) {
+          console.warn(`Skipping token ${tokenId} due to error:`, error);
         }
       }
     }
 
-    console.log("Owned NFTs:", Array.from(ownedTokenIds));
+    // Fetch Metadata for each token
+    const nfts = [];
+    for (const tokenId of ownedTokenIds) {
+      let tokenURI = (await client.readContract({
+        address: contractAddress,
+        abi: nftAbi,
+        functionName: "tokenURI",
+        args: [BigInt(tokenId)],
+      })) as string;
 
-    return Array.from(ownedTokenIds);
+      if (tokenURI.startsWith("ipfs://")) {
+        tokenURI = tokenURI.replace("ipfs://", "https://ipfs.io/ipfs/");
+      }
+
+      if (tokenURI.startsWith("ar://")) {
+        tokenURI = tokenURI.replace("ar://", "https://arweave.net/");
+      }
+
+      try {
+        const metadataResponse = await fetch(tokenURI);
+        const metadata = await metadataResponse.json();
+
+        nfts.push({
+          tokenId,
+          metadata,
+        });
+      } catch (error) {
+        console.warn(
+          `Skipping metadata for token ${tokenId} due to error:`,
+          error
+        );
+      }
+    }
+
+    return { nfts };
   } catch (error) {
     console.error("Error fetching NFTs:", error);
-    throw new Error("Failed to fetch NFTs");
+    throw new Error("Failed to fetch NFT metadata");
   }
 }
