@@ -14,5 +14,8 @@
   "keywords": [],
   "author": "",
   "license": "MIT",
-  "packageManager": "pnpm@10.6.3"
+  "packageManager": "pnpm@10.6.3",
+  "dependencies": {
+    "@geist-ui/core": "^2.3.8"
+  }
 }
