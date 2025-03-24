@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import Navbar from '../components/layout/Navbar';
+import Navbar from '@/app/components/layout/Navbar';
 
 interface NFT {
   id: string;
