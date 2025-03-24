@@ -6,6 +6,6 @@ export const eduChainTestnet = defineChain({
   network: "edu-chain-testnet",
   nativeCurrency: { name: "EDU", symbol: "EDU", decimals: 18 },
   rpcUrls: {
-    default: { http: [process.env.EDU_CHAIN_TESTNET_RPC_URL as string] },
+    default: { http: ["https://rpc.open-campus-codex.gelato.digital"] },
   },
 });
