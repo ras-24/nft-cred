@@ -469,7 +469,7 @@ export async function fetchNFTs(
     }
 
     // Fetch Metadata for each token
-    const nfts = [];
+    const borrowers_nft = [];
     for (const tokenId of ownedTokenIds) {
       let tokenURI = (await client.readContract({
         address: contractAddress,
@@ -490,7 +490,7 @@ export async function fetchNFTs(
         const metadataResponse = await fetch(tokenURI);
         const metadata = await metadataResponse.json();
 
-        nfts.push({
+        borrowers_nft.push({
           tokenId,
           metadata,
         });
@@ -502,7 +502,7 @@ export async function fetchNFTs(
       }
     }
 
-    return { nfts };
+    return { borrowers_nft };
   } catch (error) {
     console.error("Error fetching NFTs:", error);
     throw new Error("Failed to fetch NFT metadata");
