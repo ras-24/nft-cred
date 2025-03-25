@@ -4,28 +4,14 @@ import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useTheme } from '../ThemeProvider';
+import { useWallet } from '@/app/contexts/WalletContext';
 
 export default function Navbar() {
-  const [isConnected, setIsConnected] = useState(false);
-  const [walletAddress, setWalletAddress] = useState('');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { theme, toggleTheme } = useTheme();
+  const { isConnected, walletAddress, connectWallet, disconnectWallet } = useWallet();
 
-  const connectWallet = async () => {
-    try {
-      if (typeof window.ethereum !== 'undefined') {
-        const accounts = await window.ethereum.request({
-          method: 'eth_requestAccounts'
-        });
-        setWalletAddress(accounts[0]);
-        setIsConnected(true);
-      } else {
-        alert('Please install MetaMask to use this application');
-      }
-    } catch (error) {
-      console.error('Error connecting wallet:', error);
-    }
-  };
+  // Remove the useEffect and wallet state management code as it's now handled by the context
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
@@ -121,14 +107,27 @@ export default function Navbar() {
                 </svg>
               )}
             </button>
-            <button
-              onClick={connectWallet}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-full text-sm"
-            >
-              {isConnected
-                ? `${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}`
-                : 'Connect Wallet'}
-            </button>
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={isConnected ? disconnectWallet : connectWallet}
+                className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-full text-sm"
+              >
+                {isConnected
+                  ? `${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}`
+                  : 'Connect Wallet'}
+              </button>
+              {isConnected && (
+                <button
+                  onClick={disconnectWallet}
+                  className="p-2 rounded-full bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600"
+                  aria-label="Disconnect wallet"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
+                  </svg>
+                </button>
+              )}
+            </div>
           </div>
         </div>
         

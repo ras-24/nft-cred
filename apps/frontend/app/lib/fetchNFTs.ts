@@ -1,5 +1,6 @@
 import { client } from "./viemClient";
 import { parseAbi } from "viem";
+import { type Address } from 'viem';
 
 const nftAbi = [
   {
@@ -430,16 +431,16 @@ const nftAbi = [
   },
 ];
 
-export async function fetchNFTs(
-  walletAddress: `0x${string}`,
-  contractAddress: `0x${string}`
-) {
+
+export const fetchNFTs = async (walletAddress: string, contractAddress: string) => {
+  console.log('Fetching NFTs for:', walletAddress);
+  console.log('Contract address:', contractAddress);
   try {
     const ownedTokenIds = new Set<string>();
 
     // Get past Transfer events for this wallet
     const events = await client.getLogs({
-      address: contractAddress,
+      address: contractAddress as Address,
       event: parseAbi([
         "event Transfer(address indexed from, address indexed to, uint256 indexed tokenId)",
       ])[0],
@@ -453,11 +454,11 @@ export async function fetchNFTs(
         try {
           // Verify if the wallet still owns the token
           const currentOwner = (await client.readContract({
-            address: contractAddress,
+            address: contractAddress as Address,
             abi: nftAbi,
             functionName: "ownerOf",
             args: [tokenId],
-          })) as `0x${string}`;
+          })) as Address;
 
           if (currentOwner.toLowerCase() === walletAddress.toLowerCase()) {
             ownedTokenIds.add(tokenId.toString());
@@ -472,7 +473,7 @@ export async function fetchNFTs(
     const borrowers_nft = [];
     for (const tokenId of ownedTokenIds) {
       let tokenURI = (await client.readContract({
-        address: contractAddress,
+        address: contractAddress as Address,
         abi: nftAbi,
         functionName: "tokenURI",
         args: [BigInt(tokenId)],
@@ -486,13 +487,23 @@ export async function fetchNFTs(
         tokenURI = tokenURI.replace("ar://", "https://arweave.net/");
       }
 
+      // Inside the fetchNFTs function, update the image URL handling
       try {
         const metadataResponse = await fetch(tokenURI);
         const metadata = await metadataResponse.json();
-
+        
+        // Convert IPFS URL to HTTP gateway URL
+        let imageUrl = metadata.image;
+        if (imageUrl?.startsWith('ipfs://')) {
+          imageUrl = imageUrl.replace('ipfs://', 'https://ipfs.io/ipfs/');
+        }
+      
         borrowers_nft.push({
           tokenId,
-          metadata,
+          metadata: {
+            ...metadata,
+            image: imageUrl
+          },
         });
       } catch (error) {
         console.warn(
