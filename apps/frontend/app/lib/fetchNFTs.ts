@@ -432,7 +432,9 @@ const nftAbi = [
 ];
 
 
-export async function fetchNFTs(walletAddress: string, contractAddress: string) {
+export const fetchNFTs = async (walletAddress: string, contractAddress: string) => {
+  console.log('Fetching NFTs for:', walletAddress);
+  console.log('Contract address:', contractAddress);
   try {
     const ownedTokenIds = new Set<string>();
 

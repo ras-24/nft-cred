@@ -24,6 +24,8 @@ This will spin up a local blockchain with pre-funded accounts. Keep this termina
 3. Import the default Anvil private key to access pre-funded account:
    - In MetaMask, click "Import Account"
    - Enter private key: `0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80`
+   You now connected to wallet address: `0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266`
+   
    This account comes pre-funded with 10000 ETH.
 
 ## 3. Deploy Contract
@@ -32,9 +34,7 @@ Open a new terminal and deploy the MockNFT contract:
 
 ```bash
 cd apps/contracts
-forge create --rpc-url http://localhost:8545 \
-  --private-key 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 \
-  src/MockNFT.sol:MockNFT
+forge create --rpc-url http://localhost:8545 --private-key 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 src/MockNFT.sol:MockNFT --legacy --broadcast
 ```
 
 Save the deployed contract address from the output. It will look something like:
@@ -45,7 +45,7 @@ Save the deployed contract address from the output. It will look something like:
 Mint an NFT using Cast. Replace the contract address with your deployed address:
 
 ```bash
-cast send 0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512 \
+cast send {deployment_address} \
   "mint(address)" \
   0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 \
   --rpc-url http://localhost:8545 \
@@ -57,7 +57,7 @@ cast send 0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512 \
 Check the NFT balance of your address:
 
 ```bash
-cast call 0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512 \
+cast call {deployment_address} \
   "balanceOf(address)" \
   0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 \
   --rpc-url http://localhost:8545
