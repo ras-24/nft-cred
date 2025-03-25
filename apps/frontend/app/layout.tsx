@@ -1,16 +1,11 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { GeistSans, GeistMono } from 'geist/font';
 import "./globals.css";
+import { ThemeProvider } from "./components/ThemeProvider";
+import { WalletProvider } from "./contexts/WalletContext";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+const geistSans = GeistSans;
+const geistMono = GeistMono;
 
 export const metadata: Metadata = {
   title: "NFTCred",
@@ -27,7 +22,11 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
+        <ThemeProvider>
+          <WalletProvider>
+            {children}
+          </WalletProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

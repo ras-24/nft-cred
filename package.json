@@ -15,4 +15,6 @@
   "author": "",
   "license": "MIT",
   "packageManager": "pnpm@10.6.3"
+  "dependencies": {
+  }
 }
