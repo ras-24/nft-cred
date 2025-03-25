@@ -18,6 +18,9 @@
   "dependencies": {
     "@types/node": "^20",
     "dotenv": "^16.4.7",
+    "prisma": "^6.5.0",
+    "tsx": "^4.19.3",
+    "typescript": "^5",
     "viem": "^2.23.13"
   }
 }
