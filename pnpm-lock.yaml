@@ -6,38 +6,31 @@ settings:
 
 importers:
 
-  .:
-    dependencies:
-      '@types/node':
-        specifier: ^20
-        version: 20.17.24
-      dotenv:
-        specifier: ^16.4.7
-        version: 16.4.7
-      prisma:
-        specifier: ^6.5.0
-        version: 6.5.0(typescript@5.8.2)
-      tsx:
-        specifier: ^4.19.3
-        version: 4.19.3
-      typescript:
-        specifier: ^5
-        version: 5.8.2
-      viem:
-        specifier: ^2.23.13
-        version: 2.23.13(typescript@5.8.2)
+  .: {}
 
   apps/frontend:
     dependencies:
+      dotenv:
+        specifier: ^16.4.7
+        version: 16.4.7
       next:
         specifier: 15.2.2
         version: 15.2.2(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
+      prisma:
+        specifier: ^6.5.0
+        version: 6.5.0(typescript@5.8.2)
       react:
         specifier: ^19.0.0
         version: 19.0.0
       react-dom:
         specifier: ^19.0.0
         version: 19.0.0(react@19.0.0)
+      tsx:
+        specifier: ^4.19.3
+        version: 4.19.3
+      viem:
+        specifier: ^2.23.13
+        version: 2.23.13(typescript@5.8.2)
     devDependencies:
       '@eslint/eslintrc':
         specifier: ^3
@@ -64,7 +57,7 @@ importers:
         specifier: ^4
         version: 4.0.14
       typescript:
-        specifier: ^5
+        specifier: ^5.8.2
         version: 5.8.2
 
 packages:
