@@ -6,20 +6,7 @@ settings:
 
 importers:
 
-  .:
-    dependencies:
-      '@geist-ui/core':
-        specifier: ^2.3.8
-        version: 2.3.8(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      '@types/node':
-        specifier: ^20
-        version: 20.17.24
-      dotenv:
-        specifier: ^16.4.7
-        version: 16.4.7
-      viem:
-        specifier: ^2.23.13
-        version: 2.23.13(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)
+  .: {}
 
   apps/frontend:
     dependencies:
@@ -29,6 +16,9 @@ importers:
       '@next/font':
         specifier: ^14.2.15
         version: 14.2.15(next@14.2.25(react-dom@18.3.1(react@18.3.1))(react@18.3.1))
+      dotenv:
+        specifier: ^16.4.7
+        version: 16.4.7
       geist:
         specifier: ^1.3.1
         version: 1.3.1(next@14.2.25(react-dom@18.3.1(react@18.3.1))(react@18.3.1))
@@ -47,6 +37,9 @@ importers:
       react-hot-toast:
         specifier: ^2.5.2
         version: 2.5.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      viem:
+        specifier: ^2.23.13
+        version: 2.23.13(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)
     devDependencies:
       '@eslint/eslintrc':
         specifier: ^3

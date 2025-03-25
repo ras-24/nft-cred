@@ -14,11 +14,5 @@
   "keywords": [],
   "author": "",
   "license": "MIT",
-  "packageManager": "pnpm@10.6.3",
-  "dependencies": {
-    "@geist-ui/core": "^2.3.8",
-    "@types/node": "^20",
-    "dotenv": "^16.4.7",
-    "viem": "^2.23.13"
-  }
+  "packageManager": "pnpm@10.6.3"
 }
