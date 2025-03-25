@@ -1,8 +1,10 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import Image from 'next/image';
 import Navbar from '@/app/components/layout/Navbar';
+import { fetchNFTs } from '@/app/lib/fetchNFTs';
+import { useWallet } from '@/app/contexts/WalletContext';
 
 interface NFT {
   id: string;
@@ -11,35 +13,72 @@ interface NFT {
   collection: string;
 }
 
-// Mock data for testing
-const mockNFTs: NFT[] = [
-  {
-    id: '1',
-    name: 'NFT #1',
-    image: '/nft-placeholder.png',
-    collection: 'Collection A'
-  },
-  {
-    id: '2',
-    name: 'NFT #2',
-    image: '/nft-placeholder.png',
-    collection: 'Collection B'
-  },
-  {
-    id: '3',
-    name: 'NFT #3',
-    image: '/nft-placeholder.png',
-    collection: 'Collection A'
-  },
-];
-
 export default function Gallery() {
   const [selectedCollection, setSelectedCollection] = React.useState<string>('all');
-  
-  const collections = ['all', ...new Set(mockNFTs.map(nft => nft.collection))];
+  const [nfts, setNFTs] = React.useState<NFT[]>([]);
+  const [error, setError] = React.useState<string>('');
+  const [loading, setLoading] = React.useState<boolean>(true);
+  const { walletAddress } = useWallet();
+
+  useEffect(() => {
+    if (!walletAddress) {
+      setNFTs([]);
+      setLoading(false);
+      return;
+    }
+
+    const loadNFTs = async () => {
+      try {
+        setLoading(true);
+        const { borrowers_nft } = await fetchNFTs(
+          walletAddress,
+          process.env.NEXT_PUBLIC_NFT_CONTRACT_ADDRESS!
+        );
+        
+        const formattedNFTs = borrowers_nft.map((nft: any) => ({
+          id: nft.tokenId,
+          name: nft.metadata.name || `NFT #${nft.tokenId}`,
+          image: nft.metadata.image || '/nft-placeholder.png',
+          collection: nft.metadata.collection || 'Default Collection'
+        }));
+        
+        setNFTs(formattedNFTs);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load NFTs');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadNFTs();
+  }, [walletAddress]);
+
+  // Replace mock-based collections with dynamic ones
+  const collections = ['all', ...new Set(nfts.map(nft => nft.collection))];
   const filteredNFTs = selectedCollection === 'all' 
-    ? mockNFTs 
-    : mockNFTs.filter(nft => nft.collection === selectedCollection);
+    ? nfts 
+    : nfts.filter(nft => nft.collection === selectedCollection);
+
+  if (loading) {
+    return <div className="text-center mt-8">Loading NFTs...</div>;
+  }
+
+  if (error) {
+    return <div className="text-center mt-8 text-red-500">{error}</div>;
+  }
+
+  if (!walletAddress) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+        <Navbar />
+        <main className="pt-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+          <div className="text-center mt-8 text-gray-600 dark:text-gray-400">
+            Please connect your wallet to view your NFTs.
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -70,7 +109,7 @@ export default function Gallery() {
 
           {/* NFT Grid */}
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {filteredNFTs.map((nft) => (
+            {filteredNFTs.map((nft) => ( // Now using dynamic nfts
               <div
                 key={nft.id}
                 className="overflow-hidden rounded-xl bg-white shadow-sm transition-shadow hover:shadow-md dark:bg-gray-800"
