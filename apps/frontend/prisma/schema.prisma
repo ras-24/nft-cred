@@ -1,0 +1,109 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         String   @id @default(uuid())
+  wallet     String   @unique
+  email      String?  @unique
+  username   String   @unique
+  profilePic String?
+  userType   UserType
+  createdAt  DateTime @default(now())
+
+  credentials Credential[]
+  loans       Loan[]
+}
+
+enum UserType {
+  BORROWER
+  LENDER
+}
+
+model CredentialType {
+  id       String  @id @default(uuid())
+  name     String  @unique
+  ltv      Float
+
+  credentials Credential[]
+}
+
+model Credential {
+  id              String           @id @default(uuid())
+  userId          String
+  credentialTypeId String
+  nftTokenId      String           @unique
+  institution     String
+  verification    VerificationStatus
+  metadata        String
+  createdAt       DateTime         @default(now())
+
+  user            User             @relation(fields: [userId], references: [id])
+  credentialType  CredentialType   @relation(fields: [credentialTypeId], references: [id])
+  loan           Loan?
+}
+
+enum VerificationStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+model Loan {
+  id           String         @id @default(uuid())
+  userId       String
+  nftTokenId   String         @unique
+  loanAmount   Float
+  interestRate Float          @default(1.0)
+  duration     Int
+  ltv          Float
+  status       LoanStatus
+  createdAt    DateTime       @default(now())
+
+  user         User           @relation(fields: [userId], references: [id])
+  credential   Credential     @relation(fields: [nftTokenId], references: [nftTokenId])
+  transactions Transaction[]
+}
+
+enum LoanStatus {
+  PENDING
+  ACTIVE
+  REPAID
+  DEFAULTED
+}
+
+model Transaction {
+  id         String        @id @default(uuid())
+  loanId     String
+  amount     Float
+  txType     TransactionType
+  txHash     String?       @unique
+  createdAt  DateTime      @default(now())
+
+  loan       Loan          @relation(fields: [loanId], references: [id])
+}
+
+enum TransactionType {
+  BORROW
+  REPAYMENT
+  LIQUIDATION
+}
+
+model RegisteredNFT {
+  id           String  @id @default(uuid())
+  tokenName    String
+  tickerSymbol String
+  tokenImage   String
+  contractAddress String @unique
+}
