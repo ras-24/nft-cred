@@ -44,7 +44,8 @@ model Credential {
   id              String           @id @default(uuid())
   userId          String
   credentialTypeId String
-  nftTokenId      String           @unique
+  contractAddress String
+  tokenId         String
   institution     String
   verification    VerificationStatus
   metadata        String
@@ -53,6 +54,8 @@ model Credential {
   user            User             @relation(fields: [userId], references: [id])
   credentialType  CredentialType   @relation(fields: [credentialTypeId], references: [id])
   loan           Loan?
+
+  @@unique([contractAddress, tokenId])
 }
 
 enum VerificationStatus {
@@ -64,7 +67,8 @@ enum VerificationStatus {
 model Loan {
   id           String         @id @default(uuid())
   userId       String
-  nftTokenId   String         @unique
+  contractAddress String
+  tokenId      String         
   loanAmount   Float
   interestRate Float          @default(1.0)
   duration     Int
@@ -73,8 +77,10 @@ model Loan {
   createdAt    DateTime       @default(now())
 
   user         User           @relation(fields: [userId], references: [id])
-  credential   Credential     @relation(fields: [nftTokenId], references: [nftTokenId])
+  credential   Credential     @relation(fields: [contractAddress, tokenId], references: [contractAddress, tokenId])
   transactions Transaction[]
+
+   @@unique([contractAddress, tokenId])
 }
 
 enum LoanStatus {
