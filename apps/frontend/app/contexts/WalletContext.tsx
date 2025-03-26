@@ -90,6 +90,26 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
           localStorage.removeItem('walletDisconnected');
           localStorage.setItem('lastConnectedAccount', currentAccount);
           console.log('Connected to wallet:', currentAccount);
+
+          // Register user with the API
+          try {
+            const response = await fetch('/api/users/register', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                wallet: currentAccount
+              })
+            });
+            if (!response.ok) {
+              throw new Error('Failed to register user');
+            }
+            console.log('User registered successfully');
+          } catch (error) {
+            console.error('Error registering user:', error);
+          }
+
           toast.success('Wallet connected');
         }
       } catch (error) {
