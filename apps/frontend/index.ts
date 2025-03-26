@@ -3,23 +3,14 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 async function main() {
-  // await prisma.user.create({
-  //   data: {
-  //     wallet: "0x123456789abcdef123456789abcdef1234567890",
-  //     email: "user@example.com",
-  //     username: "nftcreduser",
-  //     profilePic: "https://example.com/profile.jpg",
-  //     userType: "BORROWER",
-  //     credentials: {},
-  //     loans: {},
-  //   },
-  // });
+  const data = await prisma.user.findMany();
+  console.log(data);  
 
-  // const allUsers = await prisma.user.findMany();
-  // console.log(allUsers);
+  const data2 = await prisma.registeredNFT.findMany();
+  console.log(data2);
 
-  const registeredNFTs = await prisma.registeredNFT.findMany();
-  console.log(registeredNFTs);
+  const data3 = await prisma.credentialType.findMany();
+  console.log(data3);
 }
 
 main()

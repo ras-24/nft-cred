@@ -17,7 +17,6 @@ model User {
   id         String   @id @default(uuid())
   wallet     String   @unique
   email      String?  @unique
-  username   String   @unique
   profilePic String?
   userType   UserType
   createdAt  DateTime @default(now())
@@ -35,8 +34,10 @@ model CredentialType {
   id       String  @id @default(uuid())
   name     String  @unique
   ltv      Float
+  basePrice Float  @default(0.5)
 
   credentials Credential[]
+  registeredNFTs RegisteredNFT[]
 }
 
 model Credential {
@@ -101,10 +102,13 @@ enum TransactionType {
 }
 
 model RegisteredNFT {
-  id           String  @id @default(uuid())
-  tokenName    String
-  tickerSymbol String
-  tokenImage   String
-  contractAddress String @unique
+  id                String  @id @default(uuid())
+  tokenName         String
+  tickerSymbol      String
+  tokenImage        String
+  contractAddress   String  @unique
+  credentialTypeId  String
+
+  credentialType    CredentialType @relation(fields: [credentialTypeId], references: [id])
 }
 
