@@ -17,7 +17,6 @@ model User {
   id         String   @id @default(uuid())
   wallet     String   @unique
   email      String?  @unique
-  username   String   @unique
   profilePic String?
   userType   UserType
   createdAt  DateTime @default(now())
