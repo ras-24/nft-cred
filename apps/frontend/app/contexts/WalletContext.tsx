@@ -27,6 +27,7 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
           if (accounts && accounts.length > 0) {
             setWalletAddress(accounts[0]);
             setIsConnected(true);
+            console.log('Connected to wallet:', accounts[0]);
           }
         } catch (error) {
           console.error('Error checking wallet connection:', error);
@@ -88,6 +89,8 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
           setIsConnected(true);
           localStorage.removeItem('walletDisconnected');
           localStorage.setItem('lastConnectedAccount', currentAccount);
+          console.log('Connected to wallet:', currentAccount);
+          toast.success('Wallet connected');
         }
       } catch (error) {
         console.error('Error connecting wallet:', error);
