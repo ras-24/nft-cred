@@ -35,6 +35,7 @@ model CredentialType {
   id       String  @id @default(uuid())
   name     String  @unique
   ltv      Float
+  basePrice Float  @default(0.5)
 
   credentials Credential[]
 }
