@@ -40,6 +40,12 @@ model CredentialType {
   registeredNFTs RegisteredNFT[]
 }
 
+model PlatformConfig {
+  id            String  @id @default("config")
+  interestRate  Float   @default(1.0)
+  updatedAt     DateTime @updatedAt
+}
+
 model Credential {
   id              String           @id @default(uuid())
   userId          String
@@ -70,7 +76,6 @@ model Loan {
   contractAddress String
   tokenId      String         
   loanAmount   Float
-  interestRate Float          @default(1.0)
   duration     Int
   ltv          Float
   status       LoanStatus

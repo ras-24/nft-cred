@@ -11,6 +11,9 @@ async function main() {
 
   const data3 = await prisma.credentialType.findMany();
   console.log(data3);
+
+  const data4 = await prisma.platformConfig.findMany();
+   console.log(data4);
 }
 
 main()
