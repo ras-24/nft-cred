@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
+import { PrismaClient } from "@prisma/client";
+
+const prisma = new PrismaClient();
 
 export async function POST(req: NextRequest) {
   try {
     const { duration, contractAddress, tokenId, metadata } = await req.json();
 
-    // Validation: Make sure all key fields are filled in.
     if (!duration || !contractAddress || !tokenId || !metadata) {
       return NextResponse.json(
         { error: "All fields are required" },
@@ -12,7 +14,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Further metadata validation
     const requiredMetadataFields = [
       "name",
       "description",
@@ -35,7 +36,6 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Recipient validation
     if (!metadata.recipient?.name || !metadata.recipient?.id) {
       return NextResponse.json(
         { error: "Recipient name and ID are required" },
@@ -43,7 +43,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Issuer validation
     if (!metadata.issuer?.name || !metadata.issuer?.id) {
       return NextResponse.json(
         { error: "Issuer name and ID are required" },
@@ -51,7 +50,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Blockchain validation
     if (
       !metadata.blockchain?.network ||
       !metadata.blockchain?.contract_address ||
@@ -64,16 +62,46 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    console.log(duration, contractAddress, tokenId, metadata);
+    const registeredNFT = await prisma.registeredNFT.findUnique({
+      where: { contractAddress },
+      include: { credentialType: true },
+    });
+
+    if (!registeredNFT) {
+      return NextResponse.json(
+        { error: "Registered NFT not found" },
+        { status: 404 }
+      );
+    }
+
+    const { basePrice, ltv, name } = registeredNFT.credentialType;
+
+    const platformConfig = await prisma.platformConfig.findFirst();
+    const interestRate = platformConfig?.interestRate ?? 0.01;
+
+    const loanAmount = parseFloat((basePrice * (ltv / 100)).toFixed(4));
+    const interest = parseFloat((loanAmount * (interestRate / 100)).toFixed(4));
+    const totalLoan = parseFloat((loanAmount + interest).toFixed(4));
 
     return NextResponse.json(
-      { message: "Loan estimate request submitted successfully" },
-      { status: 201 }
+      {
+        message: "Loan estimate calculated successfully",
+        credentialType: name,
+        basePrice,
+        duration: duration,
+        ltv,
+        loanAmount,
+        interest,
+        interestRate,
+        totalLoan,
+      },
+      { status: 200 }
     );
   } catch (error) {
     return NextResponse.json(
       { error: "Internal Server Error" },
       { status: 500 }
-    );  
+    );
   }
 }
+
