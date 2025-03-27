@@ -5,59 +5,11 @@ const prisma = new PrismaClient();
 
 export async function POST(req: NextRequest) {
   try {
-    const { duration, contractAddress, tokenId, metadata } = await req.json();
+    const { duration, contractAddress } = await req.json();
 
-    if (!duration || !contractAddress || !tokenId || !metadata) {
+    if (!duration || !contractAddress ) {
       return NextResponse.json(
         { error: "All fields are required" },
-        { status: 400 }
-      );
-    }
-
-    const requiredMetadataFields = [
-      "name",
-      "description",
-      "image",
-      "recipient",
-      "issuer",
-      "issue_date",
-      "expiry_date",
-      "verification_method",
-      "blockchain",
-      "ipfs_hash",
-    ];
-
-    for (const field of requiredMetadataFields) {
-      if (!metadata[field]) {
-        return NextResponse.json(
-          { error: `Metadata field '${field}' is required` },
-          { status: 400 }
-        );
-      }
-    }
-
-    if (!metadata.recipient?.name || !metadata.recipient?.id) {
-      return NextResponse.json(
-        { error: "Recipient name and ID are required" },
-        { status: 400 }
-      );
-    }
-
-    if (!metadata.issuer?.name || !metadata.issuer?.id) {
-      return NextResponse.json(
-        { error: "Issuer name and ID are required" },
-        { status: 400 }
-      );
-    }
-
-    if (
-      !metadata.blockchain?.network ||
-      !metadata.blockchain?.contract_address ||
-      !metadata.blockchain?.token_id ||
-      !metadata.blockchain?.tx_hash
-    ) {
-      return NextResponse.json(
-        { error: "Blockchain details are required" },
         { status: 400 }
       );
     }
