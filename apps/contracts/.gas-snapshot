@@ -1,0 +1,4 @@
+NFTCredTest:testAllowedNFTContracts() (gas: 21306)
+NFTCredTest:testApproveNFT() (gas: 25466)
+NFTCredTest:testLockNFT() (gas: 57064)
+NFTCredTest:testOwnerIsDeployer() (gas: 13760)
