@@ -3,25 +3,30 @@ pragma solidity ^0.8.19;
 
 import "forge-std/Test.sol";
 import "src/NFTCred.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract NFTCredTest is Test {
     NFTCred public nftCred;
+    IERC20 public usdcToken;
     address public owner = address(0x123);
     address public borrower = address(0x456);
+    address public lender = address(0x789);
     address public nftContract = address(0xABC);
+    address public usdcTokenAddress = address(0xDEF);
     uint256 public tokenId = 1;
+    uint256 public depositAmount = 1000 * 1e18;
     address[] public nftContracts;
 
     event NFTApproved(address indexed borrower, address indexed contractAddress, uint256 tokenId);
     event NFTLocked(address indexed borrower, address indexed contractAddress, uint256 tokenId);
+    event TokenDeposited(address indexed sender, uint256 amount);
 
     function setUp() public {
-        nftContracts.push(address(0xABC));
-        nftContracts.push(address(0xDEF));
         nftContracts.push(nftContract);
-        
+        usdcToken = IERC20(usdcTokenAddress);
+
         vm.prank(owner);
-        nftCred = new NFTCred(nftContracts);
+        nftCred = new NFTCred(nftContracts, usdcTokenAddress);
     }
 
     function testOwnerIsDeployer() public view {
@@ -29,9 +34,8 @@ contract NFTCredTest is Test {
     }
 
     function testAllowedNFTContracts() public view {
-        assertTrue(nftCred.allowedNFTContracts(address(0xABC)), "Contract 0xABC should be allowed");
-        assertTrue(nftCred.allowedNFTContracts(address(0xDEF)), "Contract 0xDEF should be allowed");
-        assertFalse(nftCred.allowedNFTContracts(address(0x999)), "Contract 0x999 should not be allowed");
+        assertTrue(nftCred.allowedNFTContracts(nftContract), "NFT contract should be allowed");
+        assertFalse(nftCred.allowedNFTContracts(address(0x999)), "Unknown contract should not be allowed");
     }
 
     function testApproveNFT() public {
@@ -56,7 +60,15 @@ contract NFTCredTest is Test {
         nftCred.lockNFT(nftContract, tokenId);
 
         assertTrue(nftCred.lockedNFTs(borrower, tokenId), "NFT should be locked");
-    }    
+    }
+
+    function testDepositUSDC() public {
+        vm.mockCall(usdcTokenAddress, abi.encodeWithSelector(IERC20.transferFrom.selector, lender, address(nftCred), depositAmount), abi.encode(true));
+
+        vm.expectEmit(true, true, true, true);
+        emit TokenDeposited(lender, depositAmount);
+
+        vm.prank(lender);
+        nftCred.depositUSDC(depositAmount);
+    }
 }
-
-
