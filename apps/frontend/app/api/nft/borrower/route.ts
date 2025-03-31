@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { fetchNFTs } from "../../lib/fetchNFTs";
+import { fetchNFTs } from "@/app/lib/fetchNFTs";
 
 export async function POST(req: NextRequest) {
   try {
