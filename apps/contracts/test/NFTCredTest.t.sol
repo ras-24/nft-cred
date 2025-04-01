@@ -15,10 +15,17 @@ contract NFTCredTest is Test {
     address public usdcTokenAddress = address(0xDEF);
     uint256 public tokenId = 1;
     uint256 public depositAmount = 1000 * 1e18;
+    uint256 public loanId = 1;
+    uint256 public loanAmount = 500 * 1e18;
+    uint256 public loanDuration = 30 days;
+    uint256 public interestRate = 5;
     address[] public nftContracts;
 
     event NFTApproved(address indexed borrower, address indexed contractAddress, uint256 tokenId);
     event NFTLocked(address indexed borrower, address indexed contractAddress, uint256 tokenId);
+    event LoanCreated(uint256 indexed loanId, address indexed borrower, uint256 loanAmount, uint256 duration, uint256 interestRate);
+    event LoanStatusUpdated(uint256 indexed loanId, NFTCred.LoanStatus status);
+    event LoanTransaction(address indexed borrower, uint256 indexed loanId, NFTCred.TransactionType txType, uint256 amount, bytes32 txHash);
     event TokenDeposited(address indexed sender, uint256 amount);
 
     function setUp() public {
@@ -57,9 +64,41 @@ contract NFTCredTest is Test {
         emit NFTLocked(borrower, nftContract, tokenId);
 
         vm.prank(borrower);
-        nftCred.lockNFT(nftContract, tokenId);
+        nftCred.lockNFT(nftContract, tokenId, NFTCred.CredentialType.ACADEMIC_DEGREE);
 
-        assertTrue(nftCred.lockedNFTs(borrower, tokenId), "NFT should be locked");
+        assertTrue(nftCred.nftLocked(nftContract, tokenId), "NFT should be locked");
+    }
+
+    function testCreateLoan() public {
+        testLockNFT();
+        
+        vm.expectEmit(true, true, true, true);
+        emit LoanCreated(loanId, borrower, loanAmount, loanDuration, interestRate);
+
+        vm.prank(borrower);
+        nftCred.createLoan(loanId, nftContract, tokenId, loanAmount, loanDuration, interestRate);
+    }
+
+    function testUpdateLoanStatus() public {
+        testCreateLoan();
+        
+        vm.expectEmit(true, true, true, true);
+        emit LoanStatusUpdated(loanId, NFTCred.LoanStatus.ACTIVE);
+
+        vm.prank(owner);
+        nftCred.updateLoanStatus(loanId, NFTCred.LoanStatus.ACTIVE);
+    }
+
+    function testRecordTransaction() public {
+        testCreateLoan();
+        
+        bytes32 txHash = keccak256("txHashExample");
+        
+        vm.expectEmit(true, true, true, true);
+        emit LoanTransaction(borrower, loanId, NFTCred.TransactionType.BORROW, loanAmount, txHash);
+
+        vm.prank(owner);
+        nftCred.recordTransaction(loanId, NFTCred.TransactionType.BORROW, loanAmount, txHash);
     }
 
     function testDepositUSDC() public {
