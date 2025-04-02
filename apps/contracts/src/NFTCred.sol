@@ -16,7 +16,7 @@ contract NFTCred is Ownable {
         uint256 tokenId;
         uint256 loanAmount;
         uint256 duration;
-        uint256 interestRate;
+        uint256 ltv;
         LoanStatus status;
     }
 
@@ -28,7 +28,7 @@ contract NFTCred is Ownable {
 
     event NFTApproved(address indexed borrower, address indexed contractAddress, uint256 tokenId);
     event NFTLocked(address indexed borrower, address indexed contractAddress, uint256 tokenId);
-    event LoanCreated(uint256 indexed loanId, address indexed borrower, uint256 loanAmount, uint256 duration, uint256 interestRate);
+    event LoanCreated(uint256 indexed loanId, address indexed borrower, uint256 loanAmount, uint256 duration, uint256 ltv);
     event LoanStatusUpdated(uint256 indexed loanId, LoanStatus status);
     event LoanTransaction(address indexed borrower, uint256 indexed loanId, TransactionType txType, uint256 amount, bytes32 txHash);
     event TokenDeposited(address indexed sender, uint256 amount);
@@ -59,7 +59,7 @@ contract NFTCred is Ownable {
         emit NFTLocked(msg.sender, _contractAddress, _tokenId);
     }
 
-    function createLoan(uint256 _loanId, address _contractAddress, uint256 _tokenId, uint256 _loanAmount, uint256 _duration, uint256 _interestRate) external {
+    function createLoan(uint256 _loanId, address _contractAddress, uint256 _tokenId, uint256 _loanAmount, uint256 _duration, uint256 _ltv) external {
         require(nftLocked[_contractAddress][_tokenId], "NFT not locked");
         require(loans[_loanId].borrower == address(0), "Loan ID already exists");
 
@@ -69,7 +69,7 @@ contract NFTCred is Ownable {
             tokenId: _tokenId,
             loanAmount: _loanAmount,
             duration: _duration,
-            interestRate: _interestRate,
+            ltv: _ltv,
             status: LoanStatus.PENDING
         });
 
@@ -77,7 +77,7 @@ contract NFTCred is Ownable {
 
         recordTransaction(_loanId, TransactionType.BORROW, _loanAmount, txHash);
 
-        emit LoanCreated(_loanId, msg.sender, _loanAmount, _duration, _interestRate);
+        emit LoanCreated(_loanId, msg.sender, _loanAmount, _duration, _ltv);
 
         updateLoanStatus(_loanId, LoanStatus.ACTIVE);
     }
