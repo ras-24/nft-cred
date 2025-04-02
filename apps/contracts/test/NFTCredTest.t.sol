@@ -76,13 +76,10 @@ contract NFTCredTest is Test {
 
         bytes32 expectedTxHash = keccak256(abi.encodePacked(borrower, loanAmount, block.timestamp));
 
-        console2.logBytes32(expectedTxHash);
-
         vm.expectEmit(true, true, true, true);
         emit LoanCreated(loanId, borrower, loanAmount, loanDuration, interestRate);
 
-        // vm.expectEmit(true, true, true, true);
-        // emit LoanTransaction(borrower, loanId, NFTCred.TransactionType.BORROW, loanAmount, expectedTxHash);
+        emit LoanTransaction(borrower, loanId, NFTCred.TransactionType.BORROW, loanAmount, expectedTxHash);
 
         vm.expectEmit(true, true, true, true);
         emit LoanStatusUpdated(loanId, NFTCred.LoanStatus.ACTIVE);
