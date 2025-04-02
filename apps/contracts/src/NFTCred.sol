@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.19;
+pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -43,6 +43,7 @@ contract NFTCred is Ownable {
     function approveNFT(address _contractAddress, uint256 _tokenId) external {
         require(allowedNFTContracts[_contractAddress], "NFT contract not allowed");
         IERC721(_contractAddress).approve(address(this), _tokenId);
+
         emit NFTApproved(msg.sender, _contractAddress, _tokenId);
     }
 
@@ -72,23 +73,39 @@ contract NFTCred is Ownable {
             status: LoanStatus.PENDING
         });
 
+        bytes32 txHash = transferUSDC(msg.sender, _loanAmount);
+
+        recordTransaction(_loanId, TransactionType.BORROW, _loanAmount, txHash);
+
         emit LoanCreated(_loanId, msg.sender, _loanAmount, _duration, _interestRate);
+
+        updateLoanStatus(_loanId, LoanStatus.ACTIVE);
     }
 
-    function updateLoanStatus(uint256 _loanId, LoanStatus _status) external onlyOwner {
-        require(loans[_loanId].borrower != address(0), "Loan does not exist");
-        loans[_loanId].status = _status;
-        emit LoanStatusUpdated(_loanId, _status);
+    function transferUSDC(address borrower, uint256 amount) internal returns (bytes32) {
+        require(usdcToken.transfer(borrower, amount), "USDC transfer failed");
+
+        return keccak256(abi.encodePacked(borrower, amount, block.timestamp));
     }
 
-    function recordTransaction(uint256 _loanId, TransactionType _txType, uint256 _amount, bytes32 _txHash) external onlyOwner {
+    function recordTransaction(uint256 _loanId, TransactionType _txType, uint256 _amount, bytes32 _txHash) internal {
         require(loans[_loanId].borrower != address(0), "Loan does not exist");
+
         emit LoanTransaction(loans[_loanId].borrower, _loanId, _txType, _amount, _txHash);
+    }
+
+    function updateLoanStatus(uint256 _loanId, LoanStatus _status) internal {
+        require(loans[_loanId].borrower != address(0), "Loan does not exist");
+
+        loans[_loanId].status = _status;
+
+        emit LoanStatusUpdated(_loanId, _status);
     }
 
     function depositUSDC(uint256 amount) external {
         require(amount > 0, "Deposit amount must be greater than zero");
         require(usdcToken.transferFrom(msg.sender, address(this), amount), "Transfer failed");
+
         emit TokenDeposited(msg.sender, amount);
     }
 }

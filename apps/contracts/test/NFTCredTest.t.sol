@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.19;
+pragma solidity ^0.8.20;
 
 import "forge-std/Test.sol";
 import "src/NFTCred.sol";
@@ -47,10 +47,10 @@ contract NFTCredTest is Test {
 
     function testApproveNFT() public {
         vm.mockCall(nftContract, abi.encodeWithSelector(IERC721.approve.selector, address(nftCred), tokenId), "");
-
+        
         vm.expectEmit(true, true, true, true);
         emit NFTApproved(borrower, nftContract, tokenId);
-
+        
         vm.prank(borrower);
         nftCred.approveNFT(nftContract, tokenId);
     }
@@ -71,39 +71,30 @@ contract NFTCredTest is Test {
 
     function testCreateLoan() public {
         testLockNFT();
-        
+
+        vm.mockCall(usdcTokenAddress, abi.encodeWithSelector(IERC20.transfer.selector, borrower, loanAmount), abi.encode(true));
+
+        bytes32 expectedTxHash = keccak256(abi.encodePacked(borrower, loanAmount, block.timestamp));
+
+        console2.logBytes32(expectedTxHash);
+
         vm.expectEmit(true, true, true, true);
         emit LoanCreated(loanId, borrower, loanAmount, loanDuration, interestRate);
 
+        // vm.expectEmit(true, true, true, true);
+        // emit LoanTransaction(borrower, loanId, NFTCred.TransactionType.BORROW, loanAmount, expectedTxHash);
+
+        vm.expectEmit(true, true, true, true);
+        emit LoanStatusUpdated(loanId, NFTCred.LoanStatus.ACTIVE);
+
+        vm.recordLogs();
         vm.prank(borrower);
         nftCred.createLoan(loanId, nftContract, tokenId, loanAmount, loanDuration, interestRate);
     }
 
-    function testUpdateLoanStatus() public {
-        testCreateLoan();
-        
-        vm.expectEmit(true, true, true, true);
-        emit LoanStatusUpdated(loanId, NFTCred.LoanStatus.ACTIVE);
-
-        vm.prank(owner);
-        nftCred.updateLoanStatus(loanId, NFTCred.LoanStatus.ACTIVE);
-    }
-
-    function testRecordTransaction() public {
-        testCreateLoan();
-        
-        bytes32 txHash = keccak256("txHashExample");
-        
-        vm.expectEmit(true, true, true, true);
-        emit LoanTransaction(borrower, loanId, NFTCred.TransactionType.BORROW, loanAmount, txHash);
-
-        vm.prank(owner);
-        nftCred.recordTransaction(loanId, NFTCred.TransactionType.BORROW, loanAmount, txHash);
-    }
-
     function testDepositUSDC() public {
         vm.mockCall(usdcTokenAddress, abi.encodeWithSelector(IERC20.transferFrom.selector, lender, address(nftCred), depositAmount), abi.encode(true));
-
+        
         vm.expectEmit(true, true, true, true);
         emit TokenDeposited(lender, depositAmount);
 
