@@ -20,6 +20,8 @@ contract NFTCred is Ownable {
         LoanStatus status;
     }
 
+    uint256 public loanCounter = 0;
+
     mapping(address => mapping(uint256 => CredentialType)) public registeredCredentials;
     mapping(uint256 => Loan) public loans;
     mapping(address => mapping(uint256 => bool)) public nftLocked;
@@ -59,11 +61,15 @@ contract NFTCred is Ownable {
         emit NFTLocked(msg.sender, _contractAddress, _tokenId);
     }
 
-    function createLoan(uint256 _loanId, address _contractAddress, uint256 _tokenId, uint256 _loanAmount, uint256 _duration, uint256 _ltv) external {
+    function createLoan(address _contractAddress, uint256 _tokenId, uint256 _loanAmount, uint256 _duration, uint256 _ltv) external {
         require(nftLocked[_contractAddress][_tokenId], "NFT not locked");
-        require(loans[_loanId].borrower == address(0), "Loan ID already exists");
 
-        loans[_loanId] = Loan({
+        uint256 newLoanId = loanCounter;
+        loanCounter++;
+        
+        require(loans[newLoanId].borrower == address(0), "Loan ID already exists");
+
+        loans[newLoanId] = Loan({
             borrower: msg.sender,
             contractAddress: _contractAddress,
             tokenId: _tokenId,
@@ -75,11 +81,11 @@ contract NFTCred is Ownable {
 
         bytes32 txHash = transferUSDC(msg.sender, _loanAmount);
 
-        recordTransaction(_loanId, TransactionType.BORROW, _loanAmount, txHash);
+        recordTransaction(TransactionType.BORROW, _loanAmount, txHash);
 
-        emit LoanCreated(_loanId, msg.sender, _loanAmount, _duration, _ltv);
+        emit LoanCreated(newLoanId, msg.sender, _loanAmount, _duration, _ltv);
 
-        updateLoanStatus(_loanId, LoanStatus.ACTIVE);
+        updateLoanStatus(LoanStatus.ACTIVE);
     }
 
     function transferUSDC(address borrower, uint256 amount) internal returns (bytes32) {
@@ -88,18 +94,20 @@ contract NFTCred is Ownable {
         return keccak256(abi.encodePacked(borrower, amount, block.timestamp));
     }
 
-    function recordTransaction(uint256 _loanId, TransactionType _txType, uint256 _amount, bytes32 _txHash) internal {
-        require(loans[_loanId].borrower != address(0), "Loan does not exist");
+    function recordTransaction(TransactionType _txType, uint256 _amount, bytes32 _txHash) internal {
+        uint256 latestLoanId = loanCounter - 1;
+        require(loans[latestLoanId].borrower != address(0), "Loan does not exist");
 
-        emit LoanTransaction(loans[_loanId].borrower, _loanId, _txType, _amount, _txHash);
+        emit LoanTransaction(loans[latestLoanId].borrower, latestLoanId, _txType, _amount, _txHash);
     }
 
-    function updateLoanStatus(uint256 _loanId, LoanStatus _status) internal {
-        require(loans[_loanId].borrower != address(0), "Loan does not exist");
+    function updateLoanStatus(LoanStatus _status) internal {
+        uint256 latestLoanId = loanCounter - 1;
+        require(loans[latestLoanId].borrower != address(0), "Loan does not exist");
 
-        loans[_loanId].status = _status;
+        loans[latestLoanId].status = _status;
 
-        emit LoanStatusUpdated(_loanId, _status);
+        emit LoanStatusUpdated(latestLoanId, _status);
     }
 
     function depositUSDC(uint256 amount) external {
