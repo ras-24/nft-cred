@@ -3,10 +3,15 @@ import { ethers } from "ethers";
 
 export async function POST(req: NextRequest) {
   try {
-    const { borrower, contractAddress, tokenId } = await req.json();
+    const { borrower, contractAddress, tokenId, credentialType } =
+      await req.json();
 
-    // Input validation
-    if (!borrower || !contractAddress || !tokenId) {
+    if (
+      !borrower ||
+      !contractAddress ||
+      !tokenId ||
+      credentialType === undefined
+    ) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
@@ -31,11 +36,15 @@ export async function POST(req: NextRequest) {
     const signer = new ethers.Wallet(privateKey, provider);
     const loanContract = new ethers.Contract(
       nftcredContract,
-      ["function lockNFT(address,uint256)"],
+      ["function lockNFT(address,uint256,uint8)"],
       signer
     );
 
-    const tx = await loanContract.lockNFT(contractAddress, tokenId);
+    const tx = await loanContract.lockNFT(
+      contractAddress,
+      tokenId,
+      credentialType
+    );
     await tx.wait();
 
     return NextResponse.json(
@@ -43,8 +52,9 @@ export async function POST(req: NextRequest) {
       { status: 200 }
     );
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
     return NextResponse.json(
-      { error: "Internal Server Error" },
+      { error: "Internal Server Error", details: errorMessage },
       { status: 500 }
     );
   }
