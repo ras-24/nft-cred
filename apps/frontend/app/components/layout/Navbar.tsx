@@ -36,16 +36,10 @@ export default function Navbar() {
                 NFT Gallery
               </Link>
               <Link
-                href="/lend"
+                href="/transactions"
                 className="text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white px-3 py-2 rounded-md text-sm font-medium"
               >
-                Lend
-              </Link>
-              <Link
-                href="/borrow"
-                className="text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white px-3 py-2 rounded-md text-sm font-medium"
-              >
-                Borrow
+                Transactions
               </Link>
             </div>
           </div>
@@ -113,7 +107,7 @@ export default function Navbar() {
                 className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-full text-sm"
               >
                 {isConnected
-                  ? `${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}`
+                  ? `${walletAddress?.slice(0, 6)}...${walletAddress?.slice(-4)}`
                   : 'Connect Wallet'}
               </button>
               {isConnected && (
@@ -157,6 +151,13 @@ export default function Navbar() {
               onClick={() => setMobileMenuOpen(false)}
             >
               Borrow
+            </Link>
+            <Link
+              href="/transactions"
+              className="text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white block px-3 py-2 rounded-md text-base font-medium"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Transactions
             </Link>
           </div>
         </div>
