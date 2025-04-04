@@ -42,3 +42,46 @@ export async function GET(req: NextRequest) {
     );
   }
 }
+
+export async function POST(req: NextRequest) {
+  try {
+    const body = await req.json();
+    const {
+      tokenName,
+      tickerSymbol,
+      tokenImage,
+      contractAddress,
+      credentialTypeId,
+    } = body;
+
+    if (
+      !tokenName ||
+      !tickerSymbol ||
+      !tokenImage ||
+      !contractAddress ||
+      !credentialTypeId
+    ) {
+      return NextResponse.json(
+        { message: "All fields are required" },
+        { status: 400 }
+      );
+    }
+
+    const newRegisteredNFT = await prisma.registeredNFT.create({
+      data: {
+        tokenName,
+        tickerSymbol,
+        tokenImage,
+        contractAddress,
+        credentialTypeId,
+      },
+    });
+
+    return NextResponse.json(newRegisteredNFT, { status: 201 });
+  } catch (error) {
+    return NextResponse.json(
+      { message: "Internal Server Error", error: (error as Error).message },
+      { status: 500 }
+    );
+  }
+}
