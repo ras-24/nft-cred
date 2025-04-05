@@ -25,6 +25,7 @@ interface NFT {
   contractAddress: string;
   credentialTypeId: string;
   metadata?: any;
+  tokenId?: string;
 }
 
 interface NFTBorrowFlowProps {
@@ -95,9 +96,10 @@ export function NFTBorrowFlow({ nft, onClose }: NFTBorrowFlowProps) {
     
     try {
       // Check for required values
-      // if (process.env.NFTCRED_CONTRACT === undefined) {
-      //   throw new Error('NFTCred contract address not configured');
-      // }
+      const nftCredAddress = process.env.NEXT_PUBLIC_NFTCRED_CONTRACT;
+      if (nftCredAddress === undefined) {
+        throw new Error('NFTCred contract address not configured');
+      }
       if (!walletAddress) {
         throw new Error('Wallet not connected. Please connect your wallet first.');
       }
@@ -126,7 +128,8 @@ export function NFTBorrowFlow({ nft, onClose }: NFTBorrowFlowProps) {
         ),
       });
       
-      const tokenId = parseInt(nft.id);
+      const tokenId = parseInt(nft.tokenId || '0');
+      console.log("nft:", nft);
 
       // Step 1: Request NFT Approval via API
       toast({
@@ -141,9 +144,9 @@ export function NFTBorrowFlow({ nft, onClose }: NFTBorrowFlowProps) {
       // Execute the approval transaction
       const tx = await executeContractCall(
         nft.contractAddress,
-        NFTCredABI,
+        ["function approve(address, uint256)"],
         'approve',
-        [walletAddress, tokenId]
+        [nftCredAddress, tokenId]
       );
       
       setTxHash(tx.hash);
@@ -210,8 +213,8 @@ export function NFTBorrowFlow({ nft, onClose }: NFTBorrowFlowProps) {
       
       // Execute lockNFT on the contract - use the correct ABI
       const lockTx = await executeContractCall(
-        nft.contractAddress,
-        NFTCredABI,
+        nftCredAddress,
+        ["function lockNFT(address,uint256,uint8)"],
         'lockNFT',
         [nft.contractAddress, tokenId, credentialType]
       );
@@ -251,7 +254,7 @@ export function NFTBorrowFlow({ nft, onClose }: NFTBorrowFlowProps) {
         ),
       });
 
-      // Step 4: Create loan directly using the smart contract
+      // // Step 4: Create loan directly using the smart contract
       const loanAmount = ethers.parseEther(estimation.loanAmount.toString());
       const duration = parseInt(form.getValues('duration'));
       const ltv = parseInt(estimation.ltv.toString());
@@ -266,10 +269,12 @@ export function NFTBorrowFlow({ nft, onClose }: NFTBorrowFlowProps) {
       });
       
       const createLoanTx = await executeContractCall(
-        nft.contractAddress,
+        nftCredAddress,
+        // nft.contractAddress,
         NFTCredABI,
         'createLoan',
         [nft.contractAddress, tokenId, loanAmount, duration, ltv]
+        // [nftCredAddress, tokenId, loanAmount, duration, ltv]
       );
       
       setTxHash(createLoanTx.hash);

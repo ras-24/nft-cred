@@ -16,7 +16,8 @@ interface NFT {
   contractAddress: string;
   credentialTypeId: string;
   uniqueId?: string; 
-  metadata?: any; // Add metadata field to store the full metadata object
+  metadata?: any;
+  tokenId?: string;
 }
 
 export default function Gallery() {
@@ -72,7 +73,8 @@ export default function Gallery() {
                     tokenImage: tokenData.metadata?.image || registeredNFT.tokenImage,
                     contractAddress: contractResult.contractAddress,
                     credentialTypeId: registeredNFT.credentialTypeId,
-                    metadata: tokenData.metadata // Store the full metadata
+                    metadata: tokenData.metadata,
+                    tokenId: tokenData.tokenId
                   });
                 }
               });
