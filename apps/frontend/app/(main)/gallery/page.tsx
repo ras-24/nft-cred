@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import Image from 'next/image';
 import Navbar from '@/app/components/layout/Navbar';
 import { fetchNFTs } from '@/app/lib/fetchNFTs';
@@ -31,68 +31,69 @@ export default function Gallery() {
   const { walletAddress } = useWallet();
   const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
 
-  useEffect(() => {
-    const loadNFTs = async () => {
-      try {
-        setLoading(true);
+  // Create a function to refresh NFTs
+  const refreshNFTs = useCallback(async () => {
+    if (!walletAddress) return;
+    
+    try {
+      setLoading(true);
+      
+      // Re-fetch registered NFTs
+      const registeredNFTs = await nftService.getRegisteredNFTs();
+      setRegisteredNFTs(registeredNFTs);
+      setNFTs(registeredNFTs);
+      
+      const contractAddresses = registeredNFTs.map(nft => nft.contractAddress);
+      
+      // Fetch all NFTs owned by the user for these contracts
+      const response = await fetchNFTs(walletAddress, contractAddresses);
+      const nftData = response?.data || [];
+      console.log('Refreshed NFT Data:', nftData);
+      
+      const userOwnedNFTs: NFT[] = [];
+      
+      // Process each contract's returned NFTs
+      nftData.forEach(contractResult => {
+        const registeredNFT = registeredNFTs.find(
+          nft => nft.contractAddress.toLowerCase() === contractResult.contractAddress.toLowerCase()
+        );
         
-        // Use the service function instead of direct fetch
-        const registeredNFTs = await nftService.getRegisteredNFTs();
-        console.log('Registered NFTs:', registeredNFTs);
-        setRegisteredNFTs(registeredNFTs);
-        setNFTs(registeredNFTs);
-        
-        if (walletAddress) {
-          const contractAddresses = registeredNFTs.map(nft => nft.contractAddress);
-          
-          // Fetch all NFTs owned by the user for these contracts
-          const response = await fetchNFTs(walletAddress, contractAddresses);
-          const nftData = response?.data || [];
-          console.log('NFT Data:', nftData);
-          
-          const userOwnedNFTs: NFT[] = [];
-          
-          // Process each contract's returned NFTs
-          nftData.forEach(contractResult => {
-            const registeredNFT = registeredNFTs.find(
-              nft => nft.contractAddress.toLowerCase() === contractResult.contractAddress.toLowerCase()
-            );
-            
-            if (registeredNFT && Array.isArray(contractResult.borrowers_nft)) {
-              // Map each token from this contract to an NFT object
-              contractResult.borrowers_nft.forEach((tokenData: any) => {
-                if (tokenData && tokenData.tokenId) {
-                  // Create a unique ID by combining contractAddress and tokenId
-                  const uniqueId = `${contractResult.contractAddress}-${tokenData.tokenId}`;
-                  
-                  userOwnedNFTs.push({
-                    id: tokenData.tokenId,
-                    uniqueId: uniqueId, 
-                    tokenName: tokenData.metadata?.name || registeredNFT.tokenName,
-                    tickerSymbol: registeredNFT.tickerSymbol,
-                    tokenImage: tokenData.metadata?.image || registeredNFT.tokenImage,
-                    contractAddress: contractResult.contractAddress,
-                    credentialTypeId: registeredNFT.credentialTypeId,
-                    metadata: tokenData.metadata,
-                    tokenId: tokenData.tokenId
-                  });
-                }
+        if (registeredNFT && Array.isArray(contractResult.borrowers_nft)) {
+          // Map each token from this contract to an NFT object
+          contractResult.borrowers_nft.forEach((tokenData: any) => {
+            if (tokenData && tokenData.tokenId) {
+              // Create a unique ID by combining contractAddress and tokenId
+              const uniqueId = `${contractResult.contractAddress}-${tokenData.tokenId}`;
+              
+              userOwnedNFTs.push({
+                id: tokenData.tokenId,
+                uniqueId: uniqueId, 
+                tokenName: tokenData.metadata?.name || registeredNFT.tokenName,
+                tickerSymbol: registeredNFT.tickerSymbol,
+                tokenImage: tokenData.metadata?.image || registeredNFT.tokenImage,
+                contractAddress: contractResult.contractAddress,
+                credentialTypeId: registeredNFT.credentialTypeId,
+                metadata: tokenData.metadata,
+                tokenId: tokenData.tokenId
               });
             }
           });
-          
-          setOwnedNFTs(userOwnedNFTs);
         }
-      } catch (err) {
-        console.error('Error loading NFTs:', err);
-        setError(err instanceof Error ? err.message : 'Failed to load NFTs');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadNFTs();
+      });
+      
+      setOwnedNFTs(userOwnedNFTs);
+    } catch (err) {
+      console.error('Error refreshing NFTs:', err);
+      setError(err instanceof Error ? err.message : 'Failed to refresh NFTs');
+    } finally {
+      setLoading(false);
+    }
   }, [walletAddress]);
+
+  useEffect(() => {
+    // Initial load of NFTs
+    refreshNFTs();
+  }, [walletAddress, refreshNFTs]);
 
   const handleImageError = (nftId: string) => {
     setImageErrors(prev => ({
@@ -197,6 +198,7 @@ export default function Gallery() {
               <NFTBorrowFlow
                 nft={selectedNFT}
                 onClose={() => setSelectedNFT(null)}
+                onLoanComplete={refreshNFTs} // Pass the refresh function
               />
             </div>
           </div>

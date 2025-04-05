@@ -32,6 +32,7 @@ interface NFT {
 interface NFTBorrowFlowProps {
   nft: NFT;
   onClose: () => void;
+  onLoanComplete?: () => void;
 }
 
 const formSchema = z.object({
@@ -39,7 +40,7 @@ const formSchema = z.object({
   requestedAmount: z.string().min(1, 'Requested amount is required'),
 });
 
-export function NFTBorrowFlow({ nft, onClose }: NFTBorrowFlowProps) {
+export function NFTBorrowFlow({ nft, onClose, onLoanComplete }: NFTBorrowFlowProps) {
   const { userId, walletAddress } = useWallet();
   const { executeContractCall, connectWallet, isConnected, signer } = useWeb3();
   const [isInitializing, setIsInitializing] = useState(true);
@@ -416,6 +417,10 @@ export function NFTBorrowFlow({ nft, onClose }: NFTBorrowFlowProps) {
           </>
         ),
       });
+      
+      if (onLoanComplete) {
+        onLoanComplete();
+      }
       
       onClose();
     } catch (error) {
