@@ -4,6 +4,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 import { userService } from '@/app/services/user';
 import { nftService } from '@/app/services/nft';
+import { usdcService } from '@/app/services/usdc';
 
 interface WalletContextType {
   isConnected: boolean;
@@ -13,6 +14,7 @@ interface WalletContextType {
   connectWallet: () => Promise<void>;
   disconnectWallet: () => Promise<void>;
   fetchBorrowerNFTs: (contractAddresses: string[]) => Promise<any>;
+  refreshBalance: () => Promise<void>;
 }
 
 const WalletContext = createContext<WalletContextType | undefined>(undefined);
@@ -26,6 +28,25 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     console.log('Wallet connection state changed:', isConnected, userId);
   }, [isConnected, userId]);
+
+  // Fetch USDC balance whenever wallet address changes
+  useEffect(() => {
+    const fetchBalance = async () => {
+      if (walletAddress && isConnected) {
+        try {
+          const balance = await usdcService.getBalance({ walletAddress });
+          setUsdcBalance(balance);
+        } catch (error) {
+          console.error('Error fetching USDC balance:', error);
+          // Don't show toast here to avoid spamming users
+        }
+      } else {
+        setUsdcBalance('0');
+      }
+    };
+
+    fetchBalance();
+  }, [walletAddress, isConnected]);
 
   useEffect(() => {
     const storedWalletAddress = localStorage.getItem('walletAddress');
@@ -85,11 +106,26 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
+  const refreshBalance = async () => {
+    if (!walletAddress || !isConnected) {
+      return;
+    }
+
+    try {
+      const balance = await usdcService.getBalance({ walletAddress });
+      setUsdcBalance(balance);
+    } catch (error) {
+      console.error('Error refreshing USDC balance:', error);
+      toast.error('Failed to refresh USDC balance');
+    }
+  };
+
   const disconnectWallet = async () => {
     try {
       setWalletAddress(null);
       setIsConnected(false);
       setUserId(null);
+      setUsdcBalance('0');
       localStorage.setItem('walletDisconnected', 'true');
       localStorage.removeItem('lastConnectedAccount');
       localStorage.removeItem('walletAddress');
@@ -138,6 +174,14 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
             console.log('Connected to wallet:', currentAccount);
             toast.success('Wallet connected');
             
+            // Fetch initial balance
+            try {
+              const balance = await usdcService.getBalance({ walletAddress: currentAccount });
+              setUsdcBalance(balance);
+            } catch (error) {
+              console.error('Error fetching initial USDC balance:', error);
+            }
+            
           } catch (error) {
             console.error('Error in user registration flow:', error);
             toast.error('Failed to complete user registration');
@@ -178,7 +222,8 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
       userId,
       connectWallet,
       disconnectWallet,
-      fetchBorrowerNFTs
+      fetchBorrowerNFTs,
+      refreshBalance
     }}>
       {children}
     </WalletContext.Provider>
