@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -9,6 +9,7 @@ import { Input } from '../ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '../ui/form';
 import { useToast, ToastTitle, ToastDescription } from '../ui/use-toast';
 import { Card } from '../ui/card';
+import { Slider } from '../ui/slider';
 import { useWallet } from '@/app/contexts/WalletContext';
 import { loanService } from '@/app/services/loan';
 import { nftService } from '@/app/services/nft';
@@ -35,14 +36,18 @@ interface NFTBorrowFlowProps {
 
 const formSchema = z.object({
   duration: z.string().min(1, 'Duration is required'),
+  requestedAmount: z.string().min(1, 'Requested amount is required'),
 });
 
 export function NFTBorrowFlow({ nft, onClose }: NFTBorrowFlowProps) {
   const { userId, walletAddress } = useWallet();
   const { executeContractCall, connectWallet, isConnected, signer } = useWeb3();
+  const [isInitializing, setIsInitializing] = useState(true);
   const [currentStep, setCurrentStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [estimation, setEstimation] = useState<any>(null);
+  const [contractBalance, setContractBalance] = useState<number>(0);
+  const [maxLoanAmount, setMaxLoanAmount] = useState<number>(0);
   const [txHash, setTxHash] = useState<string | null>(null);
   const [approvalStatus, setApprovalStatus] = useState<'idle' | 'pending' | 'success' | 'error'>('idle');
   const { toast } = useToast();
@@ -51,6 +56,7 @@ export function NFTBorrowFlow({ nft, onClose }: NFTBorrowFlowProps) {
     resolver: zodResolver(formSchema),
     defaultValues: {
       duration: '30', // Default 30 days
+      requestedAmount: '0.001', // Default small amount
     },
   });
 
@@ -65,16 +71,58 @@ export function NFTBorrowFlow({ nft, onClose }: NFTBorrowFlowProps) {
     return typeMap[credentialType] || 0;
   };
 
-  const handleEstimateLoan = async (values: z.infer<typeof formSchema>) => {
-    setIsLoading(true);
+  // Fetch contract balance
+  const fetchContractBalance = async () => {
+    try {
+      const response = await fetch(`/api/usdc/balance`);
+      if (response.ok) {
+        const data = await response.json();
+        setContractBalance(parseFloat(data.balance));
+      } else {
+        console.error("Failed to fetch contract balance");
+        toast({
+          variant: 'destructive',
+          children: (
+            <>
+              <ToastTitle>Error</ToastTitle>
+              <ToastDescription>Failed to fetch contract balance</ToastDescription>
+            </>
+          ),
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching contract balance:", error);
+      toast({
+        variant: 'destructive',
+        children: (
+          <>
+            <ToastTitle>Error</ToastTitle>
+            <ToastDescription>Failed to fetch contract balance</ToastDescription>
+          </>
+        ),
+      });
+    }
+  };
+
+  // Get initial loan estimation
+  const getInitialEstimation = async () => {
     try {
       const estimationData = await loanService.estimateLoan({
-        duration: values.duration,
+        duration: form.getValues('duration'),
         contractAddress: nft.contractAddress
       });
       
       setEstimation(estimationData);
-      setCurrentStep(2);
+      
+      // Set max loan amount based on the lower of contract balance and estimated loan amount
+      const maxAmount = Math.min(
+        parseFloat(estimationData.loanAmount), 
+        contractBalance
+      );
+      setMaxLoanAmount(maxAmount);
+      
+      // Update form value with the max loan amount
+      form.setValue('requestedAmount', maxAmount.toString());
     } catch (error) {
       toast({
         variant: 'destructive',
@@ -85,8 +133,33 @@ export function NFTBorrowFlow({ nft, onClose }: NFTBorrowFlowProps) {
           </>
         ),
       });
-    } finally {
-      setIsLoading(false);
+    }
+  };
+
+  // Initialize data on component mount
+  useEffect(() => {
+    const initialize = async () => {
+      setIsInitializing(true);
+      try {
+        await fetchContractBalance();
+        await getInitialEstimation();
+      } catch (error) {
+        console.error("Initialization error:", error);
+      } finally {
+        setIsInitializing(false);
+      }
+    };
+    
+    initialize();
+  }, [nft]);
+
+  // Handle duration change
+  const handleDurationChange = async (newDuration: string) => {
+    try {
+      form.setValue('duration', newDuration);
+      await getInitialEstimation();
+    } catch (error) {
+      console.error("Error updating duration:", error);
     }
   };
 
@@ -254,8 +327,8 @@ export function NFTBorrowFlow({ nft, onClose }: NFTBorrowFlowProps) {
         ),
       });
 
-      // // Step 4: Create loan directly using the smart contract
-      const loanAmount = ethers.parseEther(estimation.loanAmount.toString());
+      // Step 4: Create loan directly using the smart contract
+      const requestedAmount = ethers.parseEther(form.getValues('requestedAmount'));
       const duration = parseInt(form.getValues('duration'));
       const ltv = parseInt(estimation.ltv.toString());
       
@@ -270,11 +343,9 @@ export function NFTBorrowFlow({ nft, onClose }: NFTBorrowFlowProps) {
       
       const createLoanTx = await executeContractCall(
         nftCredAddress,
-        // nft.contractAddress,
         NFTCredABI,
         'createLoan',
-        [nft.contractAddress, tokenId, loanAmount, duration, ltv]
-        // [nftCredAddress, tokenId, loanAmount, duration, ltv]
+        [nft.contractAddress, tokenId, requestedAmount, duration, ltv]
       );
       
       setTxHash(createLoanTx.hash);
@@ -350,40 +421,106 @@ export function NFTBorrowFlow({ nft, onClose }: NFTBorrowFlowProps) {
         <p className="text-gray-600">{nft.tokenName}</p>
       </div>
 
-      {currentStep === 1 && (
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleEstimateLoan)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="duration"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Duration (Days)</FormLabel>
-                  <FormControl>
-                    <Input type="number" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
+      {isInitializing ? (
+        <div className="flex items-center justify-center py-6">
+          <svg className="animate-spin h-10 w-10 text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          <span className="ml-3">Initializing loan parameters...</span>
+        </div>
+      ) : (
+        <>
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Left Column - Loan Request Form */}
+            <div>
+              <Form {...form}>
+                <form className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="duration"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Duration (Days)</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="number" 
+                            {...field} 
+                            onChange={(e) => {
+                              field.onChange(e);
+                              handleDurationChange(e.target.value);
+                            }}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="requestedAmount"
+                    render={({ field }) => (
+                      <FormItem>
+                        <div className="flex justify-between items-center">
+                          <FormLabel>Requested Amount (ETH)</FormLabel>
+                          <span className="text-xs text-muted-foreground">
+                            Max: {maxLoanAmount.toFixed(6)} ETH
+                          </span>
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Slider
+                            value={[parseFloat(field.value)]}
+                            min={0.0001}
+                            max={maxLoanAmount}
+                            step={0.0001}
+                            onValueChange={(value: number[]) => field.onChange(value[0].toString())}
+                          />
+                          <FormControl>
+                            <Input
+                              type="number"
+                              step="0.0001" 
+                              {...field}
+                              onChange={(e) => {
+                                const value = parseFloat(e.target.value);
+                                if (value > maxLoanAmount) {
+                                  field.onChange(maxLoanAmount.toString());
+                                } else {
+                                  field.onChange(e.target.value);
+                                }
+                              }}
+                            />
+                          </FormControl>
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </form>
+              </Form>
+            </div>
+            
+            {/* Right Column - Loan Details */}
+            <div className="space-y-4 border rounded p-4"></div>
+              <h3 className="font-semibold text-lg">Loan Details</h3>
+              {estimation && (
+                <div className="space-y-2">
+                  <p>Credential Type: {estimation.credentialType}</p>
+                  <p>Base Price: {estimation.basePrice} ETH</p>
+                  <p>LTV: {estimation.ltv}%</p>
+                  <p>Max Loan Amount: {estimation.loanAmount} ETH</p>
+                  <p>Interest Rate: {estimation.interestRate}%</p>
+                  <p>Interest: {estimation.interest} ETH</p>
+                  <p>Total Loan: {estimation.totalLoan} ETH</p>
+                  <p>Contract Balance: {contractBalance} ETH</p>
+                  <div className="mt-4 pt-4 border-t">
+                    <p className="font-semibold">You're requesting: {form.watch('requestedAmount')} ETH</p>
+                  </div>
+                </div>
               )}
-            />
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              Get Loan Estimation
-            </Button>
-          </form>
-        </Form>
-      )}
-
-      {currentStep === 2 && estimation && (
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <h3 className="font-semibold">Loan Estimation</h3>
-            <p>Credential Type: {estimation.credentialType}</p>
-            <p>Base Price: {estimation.basePrice} ETH</p>
-            <p>LTV: {estimation.ltv}%</p>
-            <p>Loan Amount: {estimation.loanAmount} ETH</p>
-            <p>Interest Rate: {estimation.interestRate}%</p>
-            <p>Interest: {estimation.interest} ETH</p>
-            <p>Total Loan: {estimation.totalLoan} ETH</p>
+            </div>
           </div>
           
           {approvalStatus === 'pending' && (
@@ -412,21 +549,22 @@ export function NFTBorrowFlow({ nft, onClose }: NFTBorrowFlowProps) {
           <Button 
             onClick={handleCreateLoan} 
             className="w-full" 
-            disabled={isLoading || approvalStatus === 'pending'}
+            disabled={isLoading || approvalStatus === 'pending' || parseFloat(form.getValues('requestedAmount')) <= 0}
           >
             {isLoading ? "Processing..." : approvalStatus === 'success' ? "Creating Loan..." : "Create Loan"}
           </Button>
-        </div>
+          
+          <Button
+            variant="outline"
+            onClick={onClose}
+            className="w-full"
+            disabled={isLoading}
+          >
+            Cancel
+          </Button>
+        {/* </div> */}
+        </>
       )}
-
-      <Button
-        variant="outline"
-        onClick={onClose}
-        className="mt-4 w-full"
-        disabled={isLoading}
-      >
-        Cancel
-      </Button>
     </Card>
   );
 }
