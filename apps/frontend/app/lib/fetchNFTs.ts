@@ -1,435 +1,6 @@
 import { client } from "./viemClient";
-import { parseAbi } from "viem";
 import { type Address } from "viem";
-
-const nftAbi = [
-  {
-    inputs: [],
-    stateMutability: "nonpayable",
-    type: "constructor",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "owner",
-        type: "address",
-      },
-      {
-        indexed: true,
-        internalType: "address",
-        name: "approved",
-        type: "address",
-      },
-      {
-        indexed: true,
-        internalType: "uint256",
-        name: "tokenId",
-        type: "uint256",
-      },
-    ],
-    name: "Approval",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "owner",
-        type: "address",
-      },
-      {
-        indexed: true,
-        internalType: "address",
-        name: "operator",
-        type: "address",
-      },
-      {
-        indexed: false,
-        internalType: "bool",
-        name: "approved",
-        type: "bool",
-      },
-    ],
-    name: "ApprovalForAll",
-    type: "event",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "to",
-        type: "address",
-      },
-      {
-        internalType: "uint256",
-        name: "tokenId",
-        type: "uint256",
-      },
-    ],
-    name: "approve",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "to",
-        type: "address",
-      },
-    ],
-    name: "mint",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "previousOwner",
-        type: "address",
-      },
-      {
-        indexed: true,
-        internalType: "address",
-        name: "newOwner",
-        type: "address",
-      },
-    ],
-    name: "OwnershipTransferred",
-    type: "event",
-  },
-  {
-    inputs: [],
-    name: "renounceOwnership",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "from",
-        type: "address",
-      },
-      {
-        internalType: "address",
-        name: "to",
-        type: "address",
-      },
-      {
-        internalType: "uint256",
-        name: "tokenId",
-        type: "uint256",
-      },
-    ],
-    name: "safeTransferFrom",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "from",
-        type: "address",
-      },
-      {
-        internalType: "address",
-        name: "to",
-        type: "address",
-      },
-      {
-        internalType: "uint256",
-        name: "tokenId",
-        type: "uint256",
-      },
-      {
-        internalType: "bytes",
-        name: "data",
-        type: "bytes",
-      },
-    ],
-    name: "safeTransferFrom",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "operator",
-        type: "address",
-      },
-      {
-        internalType: "bool",
-        name: "approved",
-        type: "bool",
-      },
-    ],
-    name: "setApprovalForAll",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "string",
-        name: "_baseURI",
-        type: "string",
-      },
-    ],
-    name: "setBaseURI",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "from",
-        type: "address",
-      },
-      {
-        indexed: true,
-        internalType: "address",
-        name: "to",
-        type: "address",
-      },
-      {
-        indexed: true,
-        internalType: "uint256",
-        name: "tokenId",
-        type: "uint256",
-      },
-    ],
-    name: "Transfer",
-    type: "event",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "from",
-        type: "address",
-      },
-      {
-        internalType: "address",
-        name: "to",
-        type: "address",
-      },
-      {
-        internalType: "uint256",
-        name: "tokenId",
-        type: "uint256",
-      },
-    ],
-    name: "transferFrom",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "newOwner",
-        type: "address",
-      },
-    ],
-    name: "transferOwnership",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "owner",
-        type: "address",
-      },
-    ],
-    name: "balanceOf",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "tokenId",
-        type: "uint256",
-      },
-    ],
-    name: "getApproved",
-    outputs: [
-      {
-        internalType: "address",
-        name: "",
-        type: "address",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "owner",
-        type: "address",
-      },
-      {
-        internalType: "address",
-        name: "operator",
-        type: "address",
-      },
-    ],
-    name: "isApprovedForAll",
-    outputs: [
-      {
-        internalType: "bool",
-        name: "",
-        type: "bool",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "name",
-    outputs: [
-      {
-        internalType: "string",
-        name: "",
-        type: "string",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "owner",
-    outputs: [
-      {
-        internalType: "address",
-        name: "",
-        type: "address",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "tokenId",
-        type: "uint256",
-      },
-    ],
-    name: "ownerOf",
-    outputs: [
-      {
-        internalType: "address",
-        name: "",
-        type: "address",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "bytes4",
-        name: "interfaceId",
-        type: "bytes4",
-      },
-    ],
-    name: "supportsInterface",
-    outputs: [
-      {
-        internalType: "bool",
-        name: "",
-        type: "bool",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "symbol",
-    outputs: [
-      {
-        internalType: "string",
-        name: "",
-        type: "string",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "TokenId",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "tokenId",
-        type: "uint256",
-      },
-    ],
-    name: "tokenURI",
-    outputs: [
-      {
-        internalType: "string",
-        name: "",
-        type: "string",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-];
+import ERC721ABI from "@/app/lib/ABI/ERC721ABI.json";
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -456,71 +27,67 @@ export const fetchNFTs = async (
       batch.map(async (contractAddress) => {
         const contractStartTime = performance.now();
         try {
-          const ownedTokenIds = new Set<string>();
-
-          const events = await client.getLogs({
+          const balance = (await client.readContract({
             address: contractAddress as Address,
-            event: parseAbi([
-              "event Transfer(address indexed from, address indexed to, uint256 indexed tokenId)",
-            ])[0],
-            fromBlock: 0n,
-            toBlock: "latest",
-          });
+            abi: ERC721ABI,
+            functionName: "balanceOf",
+            args: [walletAddress as Address],
+          })) as bigint;
 
-          for (const event of events) {
-            const tokenId = event.args?.tokenId;
-            if (tokenId !== undefined) {
-              try {
-                const currentOwner = (await client.readContract({
+          if (balance === 0n) {
+            return {
+              contractAddress,
+              borrowers_nft: "NFT not found",
+              responseTime: "0 ms",
+            };
+          }
+
+          const tokenIds = await Promise.all(
+            Array.from({ length: Number(balance) }).map(
+              (_, index) =>
+                client.readContract({
                   address: contractAddress as Address,
-                  abi: nftAbi,
-                  functionName: "ownerOf",
-                  args: [tokenId],
-                })) as Address;
-
-                if (
-                  currentOwner.toLowerCase() === walletAddress.toLowerCase()
-                ) {
-                  ownedTokenIds.add(tokenId.toString());
-                }
-              } catch {
-                // Skip token if error occurs
-              }
-            }
-          }
-
-          if (ownedTokenIds.size === 0) {
-            return { contractAddress, borrowers_nft: "NFT not found", responseTime: "0 ms" };
-          }
+                  abi: ERC721ABI,
+                  functionName: "tokenOfOwnerByIndex",
+                  args: [walletAddress as Address, BigInt(index)],
+                }) as Promise<bigint>
+            )
+          );
 
           const borrowers_nft = await Promise.all(
-            [...ownedTokenIds].map(async (tokenId) => {
-              let tokenURI = (await client.readContract({
-                address: contractAddress as Address,
-                abi: nftAbi,
-                functionName: "tokenURI",
-                args: [BigInt(tokenId)],
-              })) as string;
-
-              if (tokenURI.startsWith("ipfs://")) {
-                tokenURI = tokenURI.replace("ipfs://", "https://ipfs.io/ipfs/");
-              }
-
-              if (tokenURI.startsWith("ar://")) {
-                tokenURI = tokenURI.replace("ar://", "https://arweave.net/");
-              }
-
+            tokenIds.map(async (tokenId) => {
               try {
+                let tokenURI = (await client.readContract({
+                  address: contractAddress as Address,
+                  abi: ERC721ABI,
+                  functionName: "tokenURI",
+                  args: [tokenId],
+                })) as string;
+
+                if (tokenURI.startsWith("ipfs://")) {
+                  tokenURI = tokenURI.replace(
+                    "ipfs://",
+                    "https://ipfs.io/ipfs/"
+                  );
+                }
+
+                if (tokenURI.startsWith("ar://")) {
+                  tokenURI = tokenURI.replace("ar://", "https://arweave.net/");
+                }
+
                 const metadataResponse = await fetch(tokenURI);
                 const metadata = await metadataResponse.json();
 
                 let imageUrl = metadata.image;
                 if (imageUrl?.startsWith("ipfs://")) {
-                  imageUrl = imageUrl.replace("ipfs://", "https://ipfs.io/ipfs/");
+                  imageUrl = imageUrl.replace(
+                    "ipfs://",
+                    "https://ipfs.io/ipfs/"
+                  );
                 }
 
                 return {
-                  tokenId,
+                  tokenId: tokenId.toString(),
                   metadata: {
                     ...metadata,
                     image: imageUrl,
@@ -533,8 +100,12 @@ export const fetchNFTs = async (
           );
 
           const contractEndTime = performance.now();
-          const responseTime = `${(contractEndTime - contractStartTime).toFixed(2)} ms`;
-          console.log(`Contract ${contractAddress} completed in ${responseTime}`);
+          const responseTime = `${(contractEndTime - contractStartTime).toFixed(
+            2
+          )} ms`;
+          console.log(
+            `Contract ${contractAddress} completed in ${responseTime}`
+          );
 
           return {
             contractAddress,
@@ -543,7 +114,11 @@ export const fetchNFTs = async (
           };
         } catch (error) {
           console.error("Error fetching contract:", contractAddress, error);
-          throw new Error(`Failed to fetch NFTs for contract ${contractAddress}`);
+          return {
+            contractAddress,
+            error: "Failed to fetch",
+            responseTime: "0 ms",
+          };
         }
       })
     );
