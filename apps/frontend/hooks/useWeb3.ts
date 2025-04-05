@@ -83,6 +83,7 @@ export function useWeb3() {
       throw new Error('Wallet not connected');
     }
 
+    console.log('Executing contract call:', { contractAddress, method, args });
     const contract = new ethers.Contract(contractAddress, abi, signer);
     const tx = await contract[method](...args);
     return tx;

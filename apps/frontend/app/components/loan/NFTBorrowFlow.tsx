@@ -60,6 +60,10 @@ export function NFTBorrowFlow({ nft, onClose }: NFTBorrowFlowProps) {
     },
   });
 
+  useEffect(() => {
+    console.log(maxLoanAmount);
+  }, [maxLoanAmount]);
+
   // Helper function to map credential type string to numeric value
   const mapCredentialTypeToNumber = (credentialType: string): number => {
     const typeMap: Record<string, number> = {
@@ -77,7 +81,10 @@ export function NFTBorrowFlow({ nft, onClose }: NFTBorrowFlowProps) {
       const response = await fetch(`/api/usdc/balance`);
       if (response.ok) {
         const data = await response.json();
-        setContractBalance(parseFloat(data.balance));
+        console.log("Contract balance data:", data);
+        const balanceValue = parseFloat(data.balance);
+        setContractBalance(balanceValue);
+        return balanceValue; // Return the balance value so we can use it directly
       } else {
         console.error("Failed to fetch contract balance");
         toast({
@@ -89,6 +96,7 @@ export function NFTBorrowFlow({ nft, onClose }: NFTBorrowFlowProps) {
             </>
           ),
         });
+        return 0;
       }
     } catch (error) {
       console.error("Error fetching contract balance:", error);
@@ -101,11 +109,12 @@ export function NFTBorrowFlow({ nft, onClose }: NFTBorrowFlowProps) {
           </>
         ),
       });
+      return 0;
     }
   };
 
   // Get initial loan estimation
-  const getInitialEstimation = async () => {
+  const getInitialEstimation = async (currentBalance: number) => {
     try {
       const estimationData = await loanService.estimateLoan({
         duration: form.getValues('duration'),
@@ -117,8 +126,9 @@ export function NFTBorrowFlow({ nft, onClose }: NFTBorrowFlowProps) {
       // Set max loan amount based on the lower of contract balance and estimated loan amount
       const maxAmount = Math.min(
         parseFloat(estimationData.loanAmount), 
-        contractBalance
+        currentBalance // Use the current balance passed as a parameter
       );
+      console.log(`loanAmount: ${estimationData.loanAmount}, contractBalance: ${currentBalance}`);
       setMaxLoanAmount(maxAmount);
       
       // Update form value with the max loan amount
@@ -141,8 +151,10 @@ export function NFTBorrowFlow({ nft, onClose }: NFTBorrowFlowProps) {
     const initialize = async () => {
       setIsInitializing(true);
       try {
-        await fetchContractBalance();
-        await getInitialEstimation();
+        // First fetch the balance and store the returned value
+        const balance = await fetchContractBalance();
+        // Then pass that balance to getInitialEstimation
+        await getInitialEstimation(balance);
       } catch (error) {
         console.error("Initialization error:", error);
       } finally {
@@ -157,7 +169,8 @@ export function NFTBorrowFlow({ nft, onClose }: NFTBorrowFlowProps) {
   const handleDurationChange = async (newDuration: string) => {
     try {
       form.setValue('duration', newDuration);
-      await getInitialEstimation();
+      // Use the current contract balance from state when duration changes
+      await getInitialEstimation(contractBalance);
     } catch (error) {
       console.error("Error updating duration:", error);
     }
@@ -328,7 +341,20 @@ export function NFTBorrowFlow({ nft, onClose }: NFTBorrowFlowProps) {
       });
 
       // Step 4: Create loan directly using the smart contract
-      const requestedAmount = ethers.parseEther(form.getValues('requestedAmount'));
+      const requestedAmountString = form.getValues('requestedAmount');
+      console.log("Requested amount (string):", requestedAmountString);
+      
+      // Convert to a proper decimal format (USDC has 6 decimals)
+      const requestedAmountNumber = parseFloat(requestedAmountString);
+      console.log("Requested amount (number):", requestedAmountNumber);
+      
+      // Use parseUnits with 6 decimals for USDC
+      const requestedAmount = ethers.parseUnits(
+        requestedAmountString,
+        6  // USDC uses 6 decimal places
+      );
+      console.log("Requested amount (formatted for contract):", requestedAmount.toString());
+      
       const duration = parseInt(form.getValues('duration'));
       const ltv = parseInt(estimation.ltv.toString());
       
@@ -339,6 +365,14 @@ export function NFTBorrowFlow({ nft, onClose }: NFTBorrowFlowProps) {
             <ToastDescription>Please confirm the transaction to create your loan...</ToastDescription>
           </>
         ),
+      });
+      
+      console.log("Creating loan with params:", {
+        "contractAddress": nft.contractAddress,
+        "tokenId": tokenId,
+        "requestedAmount": requestedAmount.toString(),
+        "duration": duration,
+        "ltv": ltv
       });
       
       const createLoanTx = await executeContractCall(
@@ -415,7 +449,7 @@ export function NFTBorrowFlow({ nft, onClose }: NFTBorrowFlowProps) {
   };
 
   return (
-    <Card className="p-6">
+    <Card className="p-6 mt-20">
       <div className="mb-6">
         <h2 className="text-2xl font-bold mb-2">Borrow Against Your NFT</h2>
         <p className="text-gray-600">{nft.tokenName}</p>
@@ -464,9 +498,9 @@ export function NFTBorrowFlow({ nft, onClose }: NFTBorrowFlowProps) {
                     render={({ field }) => (
                       <FormItem>
                         <div className="flex justify-between items-center">
-                          <FormLabel>Requested Amount (ETH)</FormLabel>
+                          <FormLabel>Requested Amount (USDC)</FormLabel>
                           <span className="text-xs text-muted-foreground">
-                            Max: {maxLoanAmount.toFixed(6)} ETH
+                            Max: {maxLoanAmount.toFixed(6)} USDC
                           </span>
                         </div>
                         
@@ -476,7 +510,11 @@ export function NFTBorrowFlow({ nft, onClose }: NFTBorrowFlowProps) {
                             min={0.0001}
                             max={maxLoanAmount}
                             step={0.0001}
-                            onValueChange={(value: number[]) => field.onChange(value[0].toString())}
+                            onValueChange={(value: number[]) => {
+                              // Format the value to avoid scientific notation
+                              const formattedValue = value[0].toFixed(6);
+                              field.onChange(formattedValue);
+                            }}
                           />
                           <FormControl>
                             <Input
@@ -485,10 +523,12 @@ export function NFTBorrowFlow({ nft, onClose }: NFTBorrowFlowProps) {
                               {...field}
                               onChange={(e) => {
                                 const value = parseFloat(e.target.value);
-                                if (value > maxLoanAmount) {
-                                  field.onChange(maxLoanAmount.toString());
+                                if (isNaN(value)) {
+                                  field.onChange("0");
+                                } else if (value > maxLoanAmount) {
+                                  field.onChange(maxLoanAmount.toFixed(6));
                                 } else {
-                                  field.onChange(e.target.value);
+                                  field.onChange(value.toFixed(6));
                                 }
                               }}
                             />
@@ -503,24 +543,25 @@ export function NFTBorrowFlow({ nft, onClose }: NFTBorrowFlowProps) {
             </div>
             
             {/* Right Column - Loan Details */}
-            <div className="space-y-4 border rounded p-4"></div>
+            <div className="space-y-4 border rounded p-4">
               <h3 className="font-semibold text-lg">Loan Details</h3>
               {estimation && (
                 <div className="space-y-2">
                   <p>Credential Type: {estimation.credentialType}</p>
-                  <p>Base Price: {estimation.basePrice} ETH</p>
+                  <p>Base Price: {estimation.basePrice} USDC</p>
                   <p>LTV: {estimation.ltv}%</p>
-                  <p>Max Loan Amount: {estimation.loanAmount} ETH</p>
+                  <p>Max Loan Amount: {estimation.loanAmount} USDC</p>
                   <p>Interest Rate: {estimation.interestRate}%</p>
-                  <p>Interest: {estimation.interest} ETH</p>
-                  <p>Total Loan: {estimation.totalLoan} ETH</p>
-                  <p>Contract Balance: {contractBalance} ETH</p>
+                  <p>Interest: {estimation.interest} USDC</p>
+                  <p>Total Loan: {estimation.totalLoan} USDC</p>
+                  <p>Contract Balance: {contractBalance} USDC</p>
                   <div className="mt-4 pt-4 border-t">
-                    <p className="font-semibold">You're requesting: {form.watch('requestedAmount')} ETH</p>
+                    <p className="font-semibold">You're requesting: {form.watch('requestedAmount')} USDC</p>
                   </div>
                 </div>
               )}
             </div>
+          </div>
           </div>
           
           {approvalStatus === 'pending' && (
