@@ -2,6 +2,8 @@ import { ethers, formatUnits } from "ethers";
 import { NextRequest, NextResponse } from "next/server";
 import ERC20ABI from "@/app/lib/ABI/ERC20ABI.json";
 
+export const dynamic = "force-dynamic";
+
 const nftcredContract = process.env.NEXT_PUBLIC_NFTCRED_CONTRACT;
 if (!nftcredContract) {
   throw new Error("NFTCRED_CONTRACT is not defined in environment variables.");
