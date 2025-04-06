@@ -1,10 +1,12 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import Image from 'next/image';
 import Navbar from '@/app/components/layout/Navbar';
 import { fetchNFTs } from '@/app/lib/fetchNFTs';
 import { useWallet } from '@/app/contexts/WalletContext';
+import { NFTBorrowFlow } from '@/app/components/loan/NFTBorrowFlow';
+import { nftService } from '@/app/services/nft';
 
 interface NFT {
   id: string;
@@ -13,6 +15,9 @@ interface NFT {
   tokenImage: string;
   contractAddress: string;
   credentialTypeId: string;
+  uniqueId?: string; 
+  metadata?: any;
+  tokenId?: string;
 }
 
 export default function Gallery() {
@@ -22,52 +27,85 @@ export default function Gallery() {
   const [error, setError] = React.useState<string>('');
   const [loading, setLoading] = React.useState<boolean>(true);
   const [showOwnedOnly, setShowOwnedOnly] = React.useState<boolean>(false);
+  const [selectedNFT, setSelectedNFT] = React.useState<NFT | null>(null);
   const { walletAddress } = useWallet();
-  
+  const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
+
+  // Create a function to refresh NFTs
+  const refreshNFTs = useCallback(async () => {
+    if (!walletAddress) return;
+    
+    try {
+      setLoading(true);
+      
+      // Re-fetch registered NFTs
+      const registeredNFTs = await nftService.getRegisteredNFTs();
+      setRegisteredNFTs(registeredNFTs);
+      setNFTs(registeredNFTs);
+      
+      const contractAddresses = registeredNFTs.map(nft => nft.contractAddress);
+      
+      // Fetch all NFTs owned by the user for these contracts
+      const response = await fetchNFTs(walletAddress, contractAddresses);
+      const nftData = response?.data || [];
+      console.log('Refreshed NFT Data:', nftData);
+      
+      const userOwnedNFTs: NFT[] = [];
+      
+      // Process each contract's returned NFTs
+      nftData.forEach(contractResult => {
+        const registeredNFT = registeredNFTs.find(
+          nft => nft.contractAddress.toLowerCase() === contractResult.contractAddress.toLowerCase()
+        );
+        
+        if (registeredNFT && Array.isArray(contractResult.borrowers_nft)) {
+          // Map each token from this contract to an NFT object
+          contractResult.borrowers_nft.forEach((tokenData: any) => {
+            if (tokenData && tokenData.tokenId) {
+              // Create a unique ID by combining contractAddress and tokenId
+              const uniqueId = `${contractResult.contractAddress}-${tokenData.tokenId}`;
+              
+              userOwnedNFTs.push({
+                id: tokenData.tokenId,
+                uniqueId: uniqueId, 
+                tokenName: tokenData.metadata?.name || registeredNFT.tokenName,
+                tickerSymbol: registeredNFT.tickerSymbol,
+                tokenImage: tokenData.metadata?.image || registeredNFT.tokenImage,
+                contractAddress: contractResult.contractAddress,
+                credentialTypeId: registeredNFT.credentialTypeId,
+                metadata: tokenData.metadata,
+                tokenId: tokenData.tokenId
+              });
+            }
+          });
+        }
+      });
+      
+      setOwnedNFTs(userOwnedNFTs);
+    } catch (err) {
+      console.error('Error refreshing NFTs:', err);
+      setError(err instanceof Error ? err.message : 'Failed to refresh NFTs');
+    } finally {
+      setLoading(false);
+    }
+  }, [walletAddress]);
 
   useEffect(() => {
-    const loadNFTs = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch('/api/registered-nfts');
-        const registeredNFTs = await response.json();
-        console.log('Registered NFTs:', registeredNFTs);
-        setRegisteredNFTs(registeredNFTs);
-        setNFTs(registeredNFTs);
-        console.log('Wallet Address:', walletAddress);
-        if (walletAddress) {
-          let ownedNFTs: NFT[] = [];
-          for (const nft of registeredNFTs) {
-            const nftData = await fetchNFTs(walletAddress, nft.contractAddress);
-            if (nftData && nftData.borrowers_nft) {
-              for (const borrowerNft of nftData.borrowers_nft) {
-                ownedNFTs.push({
-                  id: `${borrowerNft.tokenId}-${nft.contractAddress}`,
-                  tokenName: borrowerNft.metadata.name || 'Unnamed NFT',
-                  tickerSymbol: borrowerNft.metadata.symbol || '-',
-                  tokenImage: borrowerNft.metadata.image || '/placeholder.png',
-                  contractAddress: nft.contractAddress,
-                  credentialTypeId: nft.credentialTypeId
-                });
-              }
-            }
-          }
-          setOwnedNFTs(ownedNFTs);
-          console.log('Owned NFTs:', ownedNFTs);
-        }
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load NFTs');
-      } finally {
-        setLoading(false);
-      }
-    };
+    // Initial load of NFTs
+    refreshNFTs();
+  }, [walletAddress, refreshNFTs]);
 
-    loadNFTs();
-  }, [walletAddress]);
+  const handleImageError = (nftId: string) => {
+    setImageErrors(prev => ({
+      ...prev,
+      [nftId]: true
+    }));
+  };
 
   const filteredNFTs = React.useMemo(() => {
     if (showOwnedOnly && walletAddress) {
-      return ownedNFTs; 
+      console.log('Filtering owned NFTs:', ownedNFTs);
+      return ownedNFTs;
     }
     return registeredNFTs;
   }, [registeredNFTs, ownedNFTs, showOwnedOnly, walletAddress]);
@@ -86,61 +124,85 @@ export default function Gallery() {
       <main className="pt-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         <div className="py-8">
           <div className="flex justify-between items-center mb-6">
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-              NFT Gallery
-            </h1>
-            <div className="flex items-center space-x-2">
-              <label className="relative inline-flex items-center cursor-pointer">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">NFT Gallery</h1>
+            <div className="flex items-center space-x-4">
+              <label className="flex items-center space-x-2">
                 <input
                   type="checkbox"
-                  className="sr-only peer"
                   checked={showOwnedOnly}
                   onChange={(e) => setShowOwnedOnly(e.target.checked)}
+                  className="form-checkbox h-4 w-4 text-blue-600"
                 />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-                <span className="ml-3 text-sm font-medium text-gray-900 dark:text-gray-300">
-                  Show Owned Only
-                </span>
+                <span className="text-gray-900 dark:text-gray-300">Show Owned NFTs Only</span>
               </label>
             </div>
           </div>
 
-          {/* NFT Grid */}
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {filteredNFTs.map((nft) => (
-              <div
-                key={nft.id}
-                className="overflow-hidden rounded-xl bg-white shadow-sm transition-shadow hover:shadow-md dark:bg-gray-800"
-              >
-                <div className="relative w-full h-48">
-                  <Image
-                    src={nft.tokenImage}
-                    alt={nft.tokenName}
-                    fill
-                    className="object-contain"
-                  />
+          {walletAddress ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {filteredNFTs.map((nft) => (
+                <div
+                  // Use uniqueId property if available, otherwise fall back to regular id
+                  key={nft.uniqueId || `${nft.contractAddress}-${nft.id}`}
+                  className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden"
+                >
+                  <div className="relative w-full pt-[56.25%]"> {/* 16:9 aspect ratio container */}
+                    {!imageErrors[nft.uniqueId || nft.id] ? (
+                      <Image
+                        src={nft.tokenImage}
+                        alt={nft.tokenName}
+                        fill
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                        className="object-contain p-2" // Changed to object-contain with padding
+                        onError={() => handleImageError(nft.uniqueId || nft.id)}
+                        priority={true}
+                      />
+                    ) : (
+                      <div className="absolute inset-0 flex items-center justify-center bg-gray-100 dark:bg-gray-700">
+                        <span className="text-gray-500 dark:text-gray-400">Image not available</span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="p-4">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{nft.tokenName}</h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      {nft.tickerSymbol}
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      ID: {nft.id.length > 10 ? `${nft.id.substring(0, 10)}...` : nft.id}
+                    </p>
+                    {showOwnedOnly && (
+                      <div className="mt-4">
+                        <button
+                          onClick={() => setSelectedNFT(nft)}
+                          className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors"
+                        >
+                          Get Loan
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
-                <div className="p-4">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                    {nft.tokenName}
-                  </h3>
-                  <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                    {nft.tickerSymbol}
-                  </p>
-                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400 truncate">
-                    {nft.contractAddress}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {nfts.length === 0 && (
-            <p className="text-center text-gray-500 dark:text-gray-400 mt-8">
-              No registered NFTs found.
-            </p>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8 text-gray-600 dark:text-gray-400">
+              <p>Please connect your wallet to view your NFTs</p>
+            </div>
           )}
         </div>
+
+        {selectedNFT && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+            <div className="max-w-3xl w-full">
+              <NFTBorrowFlow
+                nft={selectedNFT}
+                onClose={() => setSelectedNFT(null)}
+                onLoanComplete={refreshNFTs} // Pass the refresh function
+              />
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );

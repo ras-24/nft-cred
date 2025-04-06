@@ -9,9 +9,13 @@ import { useWallet } from '@/app/contexts/WalletContext';
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { theme, toggleTheme } = useTheme();
-  const { isConnected, walletAddress, connectWallet, disconnectWallet } = useWallet();
+  const { isConnected, walletAddress, usdcBalance, connectWallet, disconnectWallet, refreshBalance } = useWallet();
 
-  // Remove the useEffect and wallet state management code as it's now handled by the context
+  // Format USDC balance with commas and fixed to 2 decimal places
+  const formattedBalance = parseFloat(usdcBalance).toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
@@ -36,16 +40,10 @@ export default function Navbar() {
                 NFT Gallery
               </Link>
               <Link
-                href="/lend"
+                href="/transactions"
                 className="text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white px-3 py-2 rounded-md text-sm font-medium"
               >
-                Lend
-              </Link>
-              <Link
-                href="/borrow"
-                className="text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white px-3 py-2 rounded-md text-sm font-medium"
-              >
-                Borrow
+                Transactions
               </Link>
             </div>
           </div>
@@ -92,7 +90,7 @@ export default function Navbar() {
                 />
               </svg>
             </button>
-            <button
+            {/* <button
               onClick={toggleTheme}
               className="p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
               aria-label="Toggle theme"
@@ -106,14 +104,29 @@ export default function Navbar() {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z" />
                 </svg>
               )}
-            </button>
+            </button> */}
+            
+            {/* USDC Balance Display */}
+            {isConnected && (
+              <div className="hidden md:flex items-center space-x-1 bg-green-50 dark:bg-green-900/20 px-3 py-1 rounded-full">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-green-600 dark:text-green-400">
+                  <path d="M12 7.5a2.25 2.25 0 100 4.5 2.25 2.25 0 000-4.5z" />
+                  <path fillRule="evenodd" d="M1.5 4.875C1.5 3.839 2.34 3 3.375 3h17.25c1.035 0 1.875.84 1.875 1.875v9.75c0 1.036-.84 1.875-1.875 1.875H3.375A1.875 1.875 0 011.5 14.625v-9.75zM8.25 9.75a3.75 3.75 0 117.5 0 3.75 3.75 0 01-7.5 0zM18.75 9a.75.75 0 00-.75.75v.008c0 .414.336.75.75.75h.008a.75.75 0 00.75-.75V9.75a.75.75 0 00-.75-.75h-.008zM4.5 9.75A.75.75 0 015.25 9h.008a.75.75 0 01.75.75v.008a.75.75 0 01-.75.75H5.25a.75.75 0 01-.75-.75V9.75z" clipRule="evenodd" />
+                  <path d="M2.25 18a.75.75 0 000 1.5c5.4 0 10.63.722 15.6 2.075 1.19.324 2.4-.558 2.4-1.82V18.75a.75.75 0 00-.75-.75H2.25z" />
+                </svg>
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300" title="Click to refresh" onClick={refreshBalance}>
+                  {formattedBalance} USDC
+                </span>
+              </div>
+            )}
+            
             <div className="flex items-center space-x-2">
               <button
                 onClick={isConnected ? disconnectWallet : connectWallet}
                 className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-full text-sm"
               >
                 {isConnected
-                  ? `${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}`
+                  ? `${walletAddress?.slice(0, 6)}...${walletAddress?.slice(-4)}`
                   : 'Connect Wallet'}
               </button>
               {isConnected && (
@@ -137,6 +150,18 @@ export default function Navbar() {
           id="mobile-menu"
         >
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 border-t border-gray-200 dark:border-gray-700">
+            {isConnected && (
+              <div className="flex items-center space-x-2 px-3 py-2 text-gray-700 dark:text-gray-300">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-green-600 dark:text-green-400">
+                  <path d="M12 7.5a2.25 2.25 0 100 4.5 2.25 2.25 0 000-4.5z" />
+                  <path fillRule="evenodd" d="M1.5 4.875C1.5 3.839 2.34 3 3.375 3h17.25c1.035 0 1.875.84 1.875 1.875v9.75c0 1.036-.84 1.875-1.875 1.875H3.375A1.875 1.875 0 011.5 14.625v-9.75zM8.25 9.75a3.75 3.75 0 117.5 0 3.75 3.75 0 01-7.5 0zM18.75 9a.75.75 0 00-.75.75v.008c0 .414.336.75.75.75h.008a.75.75 0 00.75-.75V9.75a.75.75 0 00-.75-.75h-.008zM4.5 9.75A.75.75 0 015.25 9h.008a.75.75 0 01.75.75v.008a.75.75 0 01-.75.75H5.25a.75.75 0 01-.75-.75V9.75z" clipRule="evenodd" />
+                  <path d="M2.25 18a.75.75 0 000 1.5c5.4 0 10.63.722 15.6 2.075 1.19.324 2.4-.558 2.4-1.82V18.75a.75.75 0 00-.75-.75H2.25z" />
+                </svg>
+                <span className="text-sm font-medium" onClick={refreshBalance}>
+                  {formattedBalance} USDC
+                </span>
+              </div>
+            )}
             <Link
               href="/gallery"
               className="text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white block px-3 py-2 rounded-md text-base font-medium"
@@ -157,6 +182,13 @@ export default function Navbar() {
               onClick={() => setMobileMenuOpen(false)}
             >
               Borrow
+            </Link>
+            <Link
+              href="/transactions"
+              className="text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white block px-3 py-2 rounded-md text-base font-medium"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Transactions
             </Link>
           </div>
         </div>

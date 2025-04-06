@@ -17,7 +17,15 @@ const usdcContract = new ethers.Contract(usdcTokenAddress, ERC20ABI, provider);
 
 export async function GET(req: NextRequest) {
   try {
-    const balance = await usdcContract.balanceOf(nftcredContract);
+    // Get the wallet address from the query parameters
+    const searchParams = req.nextUrl.searchParams;
+    const address = searchParams.get('address');
+    
+    // If address is provided, get the balance of that address
+    // Otherwise, fall back to getting the contract's balance
+    const targetAddress = address || nftcredContract;
+    
+    const balance = await usdcContract.balanceOf(targetAddress);
 
     // Convert Wei to USDC Token
     const formattedBalance = formatUnits(balance, 6);
