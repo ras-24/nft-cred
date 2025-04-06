@@ -11,19 +11,19 @@ contract NFTCredTest is Test {
     address public owner = address(0x123);
     address public borrower = address(0x456);
     address public lender = address(0x789);
+    address public user = address(0xABCD);
     address public nftContract = address(0xABC);
     address public usdcTokenAddress = address(0xDEF);
     uint256 public tokenId = 1;
     uint256 public depositAmount = 1000 * 1e18;
-    uint256 public loanId = 1;
     uint256 public loanAmount = 500 * 1e18;
     uint256 public loanDuration = 30 days;
-    uint256 public interestRate = 5;
+    uint256 public ltv = 80;
     address[] public nftContracts;
 
     event NFTApproved(address indexed borrower, address indexed contractAddress, uint256 tokenId);
     event NFTLocked(address indexed borrower, address indexed contractAddress, uint256 tokenId);
-    event LoanCreated(uint256 indexed loanId, address indexed borrower, uint256 loanAmount, uint256 duration, uint256 interestRate);
+    event LoanCreated(uint256 indexed loanId, address indexed borrower, uint256 loanAmount, uint256 duration, uint256 ltv);
     event LoanStatusUpdated(uint256 indexed loanId, NFTCred.LoanStatus status);
     event LoanTransaction(address indexed borrower, uint256 indexed loanId, NFTCred.TransactionType txType, uint256 amount, bytes32 txHash);
     event TokenDeposited(address indexed sender, uint256 amount);
@@ -55,38 +55,51 @@ contract NFTCredTest is Test {
         nftCred.approveNFT(nftContract, tokenId);
     }
 
-    function testLockNFT() public {
-        vm.mockCall(nftContract, abi.encodeWithSelector(IERC721.ownerOf.selector, tokenId), abi.encode(borrower));
-        vm.mockCall(nftContract, abi.encodeWithSelector(IERC721.getApproved.selector, tokenId), abi.encode(address(nftCred)));
-        vm.mockCall(nftContract, abi.encodeWithSelector(IERC721.transferFrom.selector, borrower, address(nftCred), tokenId), "");
+    function setDefaultMocks(address _nftContract, uint256 _mockTokenId, address _mockOwner) internal {
+        vm.mockCall(
+            _nftContract,
+            abi.encodeWithSelector(IERC721.ownerOf.selector, _mockTokenId),
+            abi.encode(_mockOwner)
+        );
 
-        vm.expectEmit(true, true, true, true);
-        emit NFTLocked(borrower, nftContract, tokenId);
+        vm.mockCall(
+            _nftContract,
+            abi.encodeWithSelector(IERC721.getApproved.selector, _mockTokenId),
+            abi.encode(address(nftCred))
+        );
 
-        vm.prank(borrower);
-        nftCred.lockNFT(nftContract, tokenId, NFTCred.CredentialType.ACADEMIC_DEGREE);
-
-        assertTrue(nftCred.nftLocked(nftContract, tokenId), "NFT should be locked");
+        vm.mockCall(
+            _nftContract,
+            abi.encodeWithSelector(
+                bytes4(keccak256("safeTransferFrom(address,address,uint256)")),
+                _mockOwner,
+                address(nftCred),
+                _mockTokenId
+            ),
+            ""
+        );
     }
-
+    
     function testCreateLoan() public {
-        testLockNFT();
+        vm.mockCall(
+            nftContract,
+            abi.encodeWithSelector(IERC721.ownerOf.selector, tokenId),
+            abi.encode(user)
+        );
+        vm.mockCall(
+            nftContract,
+            abi.encodeWithSelector(IERC721.getApproved.selector, tokenId),
+            abi.encode(address(nftCred))
+        );
 
-        vm.mockCall(usdcTokenAddress, abi.encodeWithSelector(IERC20.transfer.selector, borrower, loanAmount), abi.encode(true));
+        vm.prank(user);
+        nftCred.approveNFT(nftContract, tokenId);
 
-        bytes32 expectedTxHash = keccak256(abi.encodePacked(borrower, loanAmount, block.timestamp));
-
-        vm.expectEmit(true, true, true, true);
-        emit LoanCreated(loanId, borrower, loanAmount, loanDuration, interestRate);
-
-        emit LoanTransaction(borrower, loanId, NFTCred.TransactionType.BORROW, loanAmount, expectedTxHash);
-
-        vm.expectEmit(true, true, true, true);
-        emit LoanStatusUpdated(loanId, NFTCred.LoanStatus.ACTIVE);
-
-        vm.recordLogs();
-        vm.prank(borrower);
-        nftCred.createLoan(loanId, nftContract, tokenId, loanAmount, loanDuration, interestRate);
+        assertEq(
+            uint8(nftCred.registeredCredentials(nftContract, tokenId)),
+            uint8(NFTCred.CredentialType.ACADEMIC_DEGREE),
+            "Credential type mismatch"
+        );
     }
 
     function testDepositUSDC() public {

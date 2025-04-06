@@ -49,24 +49,25 @@ contract NFTCred is Ownable {
         emit NFTApproved(msg.sender, _contractAddress, _tokenId);
     }
 
-    function lockNFT(address _contractAddress, uint256 _tokenId, CredentialType _credentialType) external {
+    function createLoan(
+        address _contractAddress,
+        uint256 _tokenId,
+        uint256 _loanAmount,
+        uint256 _duration,
+        uint256 _ltv,
+        CredentialType _credentialType
+    ) external {
         require(allowedNFTContracts[_contractAddress], "NFT contract not allowed");
         require(IERC721(_contractAddress).ownerOf(_tokenId) == msg.sender, "Not NFT owner");
         require(IERC721(_contractAddress).getApproved(_tokenId) == address(this), "NFT not approved");
 
-        IERC721(_contractAddress).transferFrom(msg.sender, address(this), _tokenId);
-        nftLocked[_contractAddress][_tokenId] = true;
-        registeredCredentials[_contractAddress][_tokenId] = _credentialType;
-
-        emit NFTLocked(msg.sender, _contractAddress, _tokenId);
-    }
-
-    function createLoan(address _contractAddress, uint256 _tokenId, uint256 _loanAmount, uint256 _duration, uint256 _ltv) external {
-        require(nftLocked[_contractAddress][_tokenId], "NFT not locked");
+        if (!nftLocked[_contractAddress][_tokenId]) {
+            _lockNFT(_contractAddress, _tokenId, _credentialType);
+        }
 
         uint256 newLoanId = loanCounter;
         loanCounter++;
-        
+
         require(loans[newLoanId].borrower == address(0), "Loan ID already exists");
 
         loans[newLoanId] = Loan({
@@ -86,6 +87,14 @@ contract NFTCred is Ownable {
         emit LoanCreated(newLoanId, msg.sender, _loanAmount, _duration, _ltv);
 
         updateLoanStatus(LoanStatus.ACTIVE);
+    }
+
+    function _lockNFT(address _contractAddress, uint256 _tokenId, CredentialType _credentialType) internal {
+        IERC721(_contractAddress).transferFrom(msg.sender, address(this), _tokenId);
+        nftLocked[_contractAddress][_tokenId] = true;
+        registeredCredentials[_contractAddress][_tokenId] = _credentialType;
+
+        emit NFTLocked(msg.sender, _contractAddress, _tokenId);
     }
 
     function transferUSDC(address borrower, uint256 amount) internal returns (bytes32) {
