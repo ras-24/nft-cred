@@ -1,2 +1,10 @@
 packages:
-  - "apps/*"       # Include all subdirectories inside "apps"
+  - apps/*
+ignoredBuiltDependencies:
+  - '@prisma/engines'
+  - bufferutil
+  - utf-8-validate
+onlyBuiltDependencies:
+  - '@prisma/client'
+  - esbuild
+  - prisma
