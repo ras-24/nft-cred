@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const nftcredContract = process.env.NFTCRED_CONTRACT;
+    const nftcredContract = process.env.NEXT_PUBLIC_NFTCRED_CONTRACT;
     if (!nftcredContract) {
       throw new Error(
         "NFTCRED_CONTRACT is not defined in the environment variables."

@@ -30,10 +30,10 @@ export async function POST(req: NextRequest) {
 
     console.log("Sending approval transaction...");
     console.log(
-      `Approving NFT ${tokenId} for contract: ${process.env.NFTCRED_CONTRACT}`
+      `Approving NFT ${tokenId} for contract: ${process.env.NEXT_PUBLIC_NFTCRED_CONTRACT}`
     );
 
-    const tx = await nftContract.approve(process.env.NFTCRED_CONTRACT, tokenId);
+    const tx = await nftContract.approve(process.env.NEXT_PUBLIC_NFTCRED_CONTRACT, tokenId);
     await tx.wait();
 
     console.log(`Transaction successful: ${tx.hash}`);

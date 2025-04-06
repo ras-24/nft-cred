@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { ethers, Log, Interface, LogDescription } from "ethers";
 import ABI from "@/app/lib/ABI/NFTCredABI.json";
 
-const CONTRACT_ADDRESS = process.env.NFTCRED_CONTRACT as `0x${string}`;
+const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_NFTCRED_CONTRACT as `0x${string}`;
 const PRIVATE_KEY = process.env.PRIVATE_KEY as `0x${string}`;
 const RPC_URL = process.env.RPC_URL as string;
 
