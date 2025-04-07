@@ -24,7 +24,7 @@ export default function Navbar() {
           <div className="flex items-center">
             <Link href="/" className="flex items-center space-x-3">
               <Image
-                src="/next.svg"
+                src="/logo.svg"
                 alt="NFT Cred Logo"
                 width={32}
                 height={32}
