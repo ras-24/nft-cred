@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, useCallback } from 'react';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import Navbar from '@/app/components/layout/Navbar';
 import { fetchNFTs } from '@/app/lib/fetchNFTs';
 import { useWallet } from '@/app/contexts/WalletContext';
@@ -16,12 +17,13 @@ interface NFT {
   tokenImage: string;
   contractAddress: string;
   credentialTypeId: string;
-  uniqueId?: string; 
+  uniqueId?: string;
   metadata?: any;
   tokenId?: string;
 }
 
 export default function Gallery() {
+  const router = useRouter();
   const [nfts, setNFTs] = React.useState<NFT[]>([]);
   const [registeredNFTs, setRegisteredNFTs] = React.useState<NFT[]>([]);
   const [ownedNFTs, setOwnedNFTs] = React.useState<NFT[]>([]);
@@ -35,40 +37,40 @@ export default function Gallery() {
   // Create a function to refresh NFTs
   const refreshNFTs = useCallback(async () => {
     if (!walletAddress) return;
-    
+
     try {
       setLoading(true);
-      
+
       // Re-fetch registered NFTs
       const registeredNFTs = await nftService.getRegisteredNFTs();
       setRegisteredNFTs(registeredNFTs);
       setNFTs(registeredNFTs);
-      
+
       const contractAddresses = registeredNFTs.map(nft => nft.contractAddress);
-      
+
       // Fetch all NFTs owned by the user for these contracts
       const response = await fetchNFTs(walletAddress, contractAddresses);
       const nftData = response?.data || [];
       console.log('Refreshed NFT Data:', nftData);
-      
+
       const userOwnedNFTs: NFT[] = [];
-      
+
       // Process each contract's returned NFTs
       nftData.forEach(contractResult => {
         const registeredNFT = registeredNFTs.find(
           nft => nft.contractAddress.toLowerCase() === contractResult.contractAddress.toLowerCase()
         );
-        
+
         if (registeredNFT && Array.isArray(contractResult.borrowers_nft)) {
           // Map each token from this contract to an NFT object
           contractResult.borrowers_nft.forEach((tokenData: any) => {
             if (tokenData && tokenData.tokenId) {
               // Create a unique ID by combining contractAddress and tokenId
               const uniqueId = `${contractResult.contractAddress}-${tokenData.tokenId}`;
-              
+
               userOwnedNFTs.push({
                 id: tokenData.tokenId,
-                uniqueId: uniqueId, 
+                uniqueId: uniqueId,
                 tokenName: tokenData.metadata?.name || registeredNFT.tokenName,
                 tickerSymbol: registeredNFT.tickerSymbol,
                 tokenImage: tokenData.metadata?.image || registeredNFT.tokenImage,
@@ -81,7 +83,7 @@ export default function Gallery() {
           });
         }
       });
-      
+
       setOwnedNFTs(userOwnedNFTs);
     } catch (err) {
       console.error('Error refreshing NFTs:', err);
@@ -129,7 +131,7 @@ export default function Gallery() {
         <div className="py-8">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
             <h1 className="text-2xl font-bold text-gray-800 dark:text-white">NFT Gallery</h1>
-            
+
             {!walletAddress ? (
               <div className="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-lg">
                 <p className="text-blue-600 dark:text-blue-400 font-medium">
@@ -159,7 +161,7 @@ export default function Gallery() {
               </h2>
               <p className="text-gray-700 dark:text-gray-300">
                 {showOwnedOnly 
-                  ? 'Select one of your NFTs to use as collateral and get an instant loan.' 
+                  ? 'Select one of your NFTs to use as collateral and get an instant loan.'
                   : 'Browse all supported NFT collections. Toggle to view only your owned NFTs.'}
               </p>
             </div>
@@ -213,12 +215,12 @@ export default function Gallery() {
                           >
                             Details
                           </Link>
-                          <button
-                            onClick={() => setSelectedNFT(nft)}
+                          <Link
+                            href={`/borrow/${nftId}`}
                             className="bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition-colors cursor-pointer"
                           >
                             Get Loan
-                          </button>
+                          </Link>
                         </div>
                       </div>
                     )}
@@ -232,18 +234,6 @@ export default function Gallery() {
             </div>
           )}
         </div>
-
-        {selectedNFT && (
-          <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center p-4 backdrop-blur-sm">
-            <div className="max-w-3xl w-full">
-              <NFTBorrowFlow
-                nft={selectedNFT}
-                onClose={() => setSelectedNFT(null)}
-                onLoanComplete={refreshNFTs}
-              />
-            </div>
-          </div>
-        )}
       </main>
     </div>
   );

@@ -272,18 +272,7 @@ export function NFTBorrowFlow({ nft, onClose, onLoanComplete }: NFTBorrowFlowPro
         ),
       });
       
-      // Step 2: Create Credential
-      await nftService.createCredential({
-        userId,
-        credentialTypeId: nft.credentialTypeId,
-        contractAddress: nft.contractAddress,
-        tokenId: nft.id,
-        institution: nft.metadata.issuer?.name || nft.tokenName,
-        verification: "PENDING",
-        metadata: JSON.stringify(nft.metadata)
-      });
-      
-      // Step 3: Lock NFT directly using the smart contract 
+      // Step 2: Lock NFT directly using the smart contract 
       toast({
         children: (
           <>
@@ -341,6 +330,17 @@ export function NFTBorrowFlow({ nft, onClose, onLoanComplete }: NFTBorrowFlowPro
       );
       
       setTxHash(createLoanTx.hash);
+
+      // Step 3: Create Credential
+      await nftService.createCredential({
+        userId,
+        credentialTypeId: nft.credentialTypeId,
+        contractAddress: nft.contractAddress,
+        tokenId: nft.id,
+        institution: nft.metadata.issuer?.name || nft.tokenName,
+        verification: "PENDING",
+        metadata: JSON.stringify(nft.metadata)
+      });
       
       toast({
         children: (

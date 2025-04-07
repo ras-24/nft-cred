@@ -182,7 +182,7 @@ export default function NFTDetails() {
 
                 <div className="mt-8">
                   <button
-                    onClick={() => router.push(`/gallery?loan=${nft.contractAddress}-${nft.tokenId}`)}
+                    onClick={() => router.push(`/borrow/${nft.contractAddress}-${nft.tokenId}`)}
                     className="w-full bg-blue-500 text-white py-3 px-4 rounded-md hover:bg-blue-600 transition-colors cursor-pointer"
                   >
                     Get Loan Using This NFT
