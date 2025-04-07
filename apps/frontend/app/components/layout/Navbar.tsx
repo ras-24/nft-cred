@@ -270,7 +270,7 @@ export default function Navbar() {
               className="text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800 block px-3 py-2 rounded-md text-base font-medium"
               onClick={() => setMobileMenuOpen(false)}
             > */}
-              Transactions
+              {/* Transactions */}
             {/* </Link> */}
             {/* Mobile Theme Toggle */}
             {/* <button

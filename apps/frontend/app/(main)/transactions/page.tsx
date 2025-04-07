@@ -62,7 +62,7 @@ export default function TransactionsPage() {
   return (
     <div className="min-h-screen bg-white">
       <Navbar />
-      <main className="pt-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+      <main className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         <div className="py-8">
           <h1 className="text-2xl font-medium text-gray-800 mb-8">
             Transactions

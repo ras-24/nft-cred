@@ -79,7 +79,7 @@ export default function NFTDetails() {
     return (
       <div className="min-h-screen bg-white dark:bg-gray-900">
         <Navbar />
-        <main className="pt-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        <main className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
           <div className="text-center mt-8 text-gray-600">Loading NFT details...</div>
         </main>
       </div>
@@ -90,7 +90,7 @@ export default function NFTDetails() {
     return (
       <div className="min-h-screen bg-white dark:bg-gray-900">
         <Navbar />
-        <main className="pt-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        <main className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
           <div className="mt-8 text-center">
             <h2 className="text-xl font-semibold text-red-500 mb-2">Error</h2>
             <p className="text-gray-600 dark:text-gray-400">{error || 'NFT not found'}</p>
@@ -106,7 +106,7 @@ export default function NFTDetails() {
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900">
       <Navbar />
-      <main className="pt-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+      <main className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         <div className="py-8">
           {/* Back button */}
           <Link

@@ -126,7 +126,7 @@ export default function Gallery() {
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900">
       <Navbar />
-      <main className="pt-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+      <main className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         <div className="py-8">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
             <h1 className="text-2xl font-bold text-gray-800 dark:text-white">NFT Gallery</h1>
