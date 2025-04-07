@@ -132,13 +132,9 @@ export const nftService = {
     }
   },
 
-  getRegisteredNFTs: async (contractAddress?: string): Promise<NFT[]> => {
+  getRegisteredNFTs: async (): Promise<NFT[]> => {
     try {
-      const url = contractAddress 
-        ? `/api/nft/registered?contractAddress=${encodeURIComponent(contractAddress)}`
-        : '/api/nft/registered';
-        
-      const response = await fetch(url);
+      const response = await fetch('/api/nft/registered');
       if (!response.ok) {
         throw new Error('Failed to fetch registered NFTs');
       }
@@ -146,6 +142,20 @@ export const nftService = {
       return Array.isArray(data) ? data : [];
     } catch (error) {
       console.error('Error fetching registered NFTs:', error);
+      throw error;
+    }
+  },
+
+  getRegisteredNFT: async (contractAddress: string): Promise<NFT | null> => {
+    try {
+      const response = await fetch(`/api/nft/registered?contractAddress=${contractAddress}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch registered NFT');
+      }
+      const data = await response.json();
+      return data || null;
+    } catch (error) {
+      console.error('Error fetching registered NFT:', error);
       throw error;
     }
   }
