@@ -132,9 +132,13 @@ export const nftService = {
     }
   },
 
-  getRegisteredNFTs: async (): Promise<NFT[]> => {
+  getRegisteredNFTs: async (contractAddress?: string): Promise<NFT[]> => {
     try {
-      const response = await fetch('/api/nft/registered');
+      const url = contractAddress 
+        ? `/api/nft/registered?contractAddress=${encodeURIComponent(contractAddress)}`
+        : '/api/nft/registered';
+        
+      const response = await fetch(url);
       if (!response.ok) {
         throw new Error('Failed to fetch registered NFTs');
       }
