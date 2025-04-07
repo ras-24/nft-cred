@@ -119,12 +119,12 @@ export default function Gallery() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white dark:bg-gray-900">
       <Navbar />
       <main className="pt-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         <div className="py-8">
           <div className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl font-medium text-gray-800">NFT Gallery</h1>
+            <h1 className="text-2xl font-medium text-gray-800 dark:text-white">NFT Gallery</h1>
             <div className="flex items-center space-x-4">
               <label className="flex items-center space-x-2">
                 <input
@@ -133,7 +133,7 @@ export default function Gallery() {
                   onChange={(e) => setShowOwnedOnly(e.target.checked)}
                   className="form-checkbox h-4 w-4 text-blue-500 border-gray-300 rounded"
                 />
-                <span className="text-gray-700">Show Owned NFTs Only</span>
+                <span className="text-gray-700 dark:text-gray-300">Show Owned NFTs Only</span>
               </label>
             </div>
           </div>
@@ -143,7 +143,7 @@ export default function Gallery() {
               {filteredNFTs.map((nft) => (
                 <div
                   key={nft.uniqueId || `${nft.contractAddress}-${nft.id}`}
-                  className="bg-white rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition-shadow overflow-hidden"
+                  className="bg-white dark:bg-gray-800 rounded-lg border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow overflow-hidden"
                 >
                   <div className="relative w-full pt-[56.25%]">
                     {!imageErrors[nft.uniqueId || nft.id] ? (
@@ -157,17 +157,17 @@ export default function Gallery() {
                         priority={true}
                       />
                     ) : (
-                      <div className="absolute inset-0 flex items-center justify-center bg-gray-50">
-                        <span className="text-gray-400">Image not available</span>
+                      <div className="absolute inset-0 flex items-center justify-center bg-gray-50 dark:bg-gray-700">
+                        <span className="text-gray-400 dark:text-gray-500">Image not available</span>
                       </div>
                     )}
                   </div>
                   <div className="p-4">
-                    <h3 className="text-lg font-medium text-gray-800">{nft.tokenName}</h3>
-                    <p className="text-sm text-gray-500">
+                    <h3 className="text-lg font-medium text-gray-800 dark:text-white">{nft.tokenName}</h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
                       {nft.tickerSymbol}
                     </p>
-                    <p className="text-xs text-gray-400 mt-1">
+                    <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
                       ID: {nft.id.length > 10 ? `${nft.id.substring(0, 10)}...` : nft.id}
                     </p>
                     {showOwnedOnly && (
@@ -185,7 +185,7 @@ export default function Gallery() {
               ))}
             </div>
           ) : (
-            <div className="text-center py-8 text-gray-500 bg-gray-50 rounded-lg p-8">
+            <div className="text-center py-8 text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 rounded-lg p-8">
               <p>Please connect your wallet to view your NFTs</p>
             </div>
           )}

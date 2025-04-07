@@ -1,51 +1,229 @@
 @import "tailwindcss";
 
+/* Enhanced Light mode variables */
 :root {
-  --background: #ffffff;
-  --foreground: #333333;
-  --primary: #3b82f6;
+  --background: #f8fafc;  /* Slightly off-white for better feel */
+  --foreground: #111827;  /* Darker text for better contrast */
+  --primary: #3b82f6;     /* Vibrant blue */
   --primary-foreground: #ffffff;
+  --secondary: #4f46e5;   /* Secondary accent color */
   --card: #ffffff;
-  --card-foreground: #333333;
+  --card-foreground: #111827;
+  --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   --border: #e5e7eb;
   --muted: #f3f4f6;
   --muted-foreground: #6b7280;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-border: var(--border);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
+  
+  /* Font variables */
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #fafafa;
-    --foreground: #333333;
-    --primary: #3b82f6;
-    --primary-foreground: #ffffff;
-    --card: #ffffff;
-    --card-foreground: #333333;
-    --border: #e5e7eb;
-    --muted: #f3f4f6;
-    --muted-foreground: #6b7280;
-  }
+/* Dark mode variables */
+.dark {
+  --background: #111827;
+  --foreground: #f3f4f6;
+  --primary: #3b82f6;
+  --primary-foreground: #ffffff;
+  --secondary: #818cf8;
+  --card: #1f2937;
+  --card-foreground: #f3f4f6;
+  --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
+  --border: #374151;
+  --muted: #374151;
+  --muted-foreground: #9ca3af;
+}
+
+/* Base HTML and body styles */
+html {
+  color-scheme: light;
+}
+
+html.dark {
+  color-scheme: dark;
 }
 
 body {
-  background: var(--background);
+  background-color: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans), sans-serif;
   font-feature-settings: "ss01", "ss03";
   font-size: 16px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Force/Fix specific elements for dark mode */
+html.dark body {
+  background-color: #111827;
+  color: #f3f4f6;
+}
+
+html:not(.dark) body {
+  background-color: var(--background);
+  color: var(--foreground);
+}
+
+/* Light Theme Button Enhancements */
+html:not(.dark) button.bg-gray-100 {
+  background-color: #f1f5f9;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e5e7eb;
+}
+
+html:not(.dark) button.hover\:bg-gray-200:hover {
+  background-color: #e2e8f0;
+}
+
+html:not(.dark) button.bg-blue-500 {
+  background-color: #3b82f6;
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+}
+
+html:not(.dark) button.hover\:bg-blue-600:hover {
+  background-color: #2563eb;
+}
+
+/* Fix the theme toggle and disconnect buttons */
+html:not(.dark) button.p-2.rounded-full {
+  background-color: #f1f5f9;
+  color: #4b5563;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+html:not(.dark) button.p-2.rounded-full:hover {
+  background-color: #e2e8f0;
+  color: #1f2937;
+}
+
+html.dark button.p-2.rounded-full {
+  background-color: #1f2937;
+  color: #e5e7eb;
+  border: 1px solid #374151;
+}
+
+html.dark button.p-2.rounded-full:hover {
+  background-color: #374151;
+  color: #f9fafb;
+}
+
+/* Fix light/dark specific styling */
+.bg-white {
+  background-color: var(--card);
+  box-shadow: var(--card-shadow);
+}
+
+.dark .bg-white {
+  background-color: var(--card);
+  box-shadow: none;
+}
+
+.dark\:bg-gray-900 {
+  background-color: var(--background);
+}
+
+/* Enhanced Card Styling for Light Mode */
+html:not(.dark) .rounded-lg.border {
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+html:not(.dark) .rounded-lg.border:hover {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
+}
+
+/* Fix text color contrast for light mode */
+.text-gray-300:not(.dark *) {
+  color: #4b5563; /* darker than default gray-300 for light mode */
+}
+
+.text-gray-400:not(.dark *) {
+  color: #374151; /* darker than default gray-400 for light mode */
+}
+
+.text-gray-500:not(.dark *) {
+  color: #1f2937; /* darker than default gray-500 for light mode */
+}
+
+/* Ensure light mode specific text colors */
+html:not(.dark) .dark\:text-white {
+  color: var(--foreground);
+}
+
+html:not(.dark) .dark\:text-gray-300 {
+  color: #374151;
+}
+
+html:not(.dark) .dark\:text-gray-400 {
+  color: #1f2937;
+}
+
+/* Link styling enhancement */
+html:not(.dark) a {
+  color: #2563eb;
+  transition: color 0.2s ease;
+}
+
+html:not(.dark) a:hover {
+  color: #1d4ed8;
+}
+
+/* Table and list enhancements for light mode */
+html:not(.dark) table th {
+  background-color: #f8fafc;
+  color: #111827;
+}
+
+html:not(.dark) table td {
+  border-color: #e5e7eb;
+}
+
+/* Reset transitions for debugging */
+* {
+  transition-duration: 0s !important;
+}
+
+a, button {
+  transition-property: background-color, border-color, color, transform, box-shadow;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms !important;
+}
+
+/* Enhanced Logo Styling for Light Mode */
+html:not(.dark) .logo-text {
+  background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font-weight: 600;
+}
+
+/* Provide better visual distinction for light mode */
+html:not(.dark) .bg-white {
+  background-color: var(--card);
+  box-shadow: var(--card-shadow);
+}
+
+/* Enhanced Card and UI Element styling for Light Mode */
+html:not(.dark) .card-gradient-border {
+  position: relative;
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+html:not(.dark) .card-gradient-border::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: -1px;
+  right: -1px;
+  bottom: -1px;
+  background: linear-gradient(45deg, #3b82f6, #8b5cf6);
+  z-index: -1;
+  border-radius: 0.5rem;
+  opacity: 0.1;
 }
