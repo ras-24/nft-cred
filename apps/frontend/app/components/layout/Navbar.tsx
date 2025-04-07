@@ -35,7 +35,9 @@ export default function Navbar() {
   const handleRefreshBalance = async () => {
     setIsRefreshingBalance(true);
     await refreshBalance();
-    // Animation will be handled by the effect above
+    setTimeout(() => {
+      setIsRefreshingBalance(false);
+    }, 1500);
   };
 
   const handleThemeToggle = (e: React.MouseEvent) => {
