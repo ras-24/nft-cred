@@ -202,7 +202,7 @@ export default function Navbar() {
             <div className="flex items-center space-x-2">
               <button
                 onClick={isConnected ? disconnectWallet : connectWallet}
-                className="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-full text-sm shadow-sm transition-all duration-200"
+                className="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-full text-sm shadow-sm transition-all duration-200  cursor-pointer"
               >
                 {isConnected
                   ? `${walletAddress?.slice(0, 6)}...${walletAddress?.slice(-4)}`
@@ -211,7 +211,7 @@ export default function Navbar() {
               {isConnected && (
                 <button
                   onClick={disconnectWallet}
-                  className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 transition-all duration-200"
+                  className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 transition-all duration-200  cursor-pointer"
                   aria-label="Disconnect wallet"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
@@ -231,7 +231,7 @@ export default function Navbar() {
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 border-t border-gray-100 dark:border-gray-800">
             {isConnected && (
               <div 
-                className={`flex items-center space-x-2 px-3 py-2 text-gray-600 dark:text-gray-300 ${isRefreshingBalance ? 'balance-refreshing' : ''}`}
+                className={`flex items-center  cursor-pointer space-x-2 px-3 py-2 text-gray-600 dark:text-gray-300 ${isRefreshingBalance ? 'balance-refreshing' : ''}`}
                 onClick={handleRefreshBalance}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={`w-4 h-4 text-blue-500 dark:text-blue-400 ${isRefreshingBalance ? 'spin-once' : ''}`}>

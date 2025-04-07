@@ -709,7 +709,7 @@ export default function BorrowPage() {
                     
                     <Button 
                       onClick={handleCreateLoan} 
-                      className="w-full bg-blue-500 hover:bg-blue-600 mt-4" 
+                      className="w-full bg-blue-500 hover:bg-blue-600 mt-4 cursor-pointer" 
                       disabled={isLoading || approvalStatus === 'pending' || parseFloat(form.getValues('requestedAmount')) <= 0}
                     >
                       {isLoading ? "Processing..." : approvalStatus === 'success' ? "Creating Loan..." : "Create Loan"}
@@ -718,7 +718,7 @@ export default function BorrowPage() {
                     <Button
                       variant="outline"
                       onClick={() => router.push('/gallery')}
-                      className="w-full mt-2 border-gray-200 text-gray-700 hover:bg-gray-50"
+                      className="w-full mt-2 border-gray-200 text-gray-700 hover:bg-gray-50  cursor-pointer"
                       disabled={isLoading}
                     >
                       Cancel

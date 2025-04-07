@@ -191,6 +191,17 @@ html:not(.dark) a:hover {
   color: #1d4ed8;
 }
 
+/* Ensure blue buttons with white text maintain white text color in light mode */
+html:not(.dark) a.bg-blue-500, 
+html:not(.dark) a.bg-blue-600 {
+  color: #ffffff !important;  /* Force white text for blue buttons */
+}
+
+html:not(.dark) a.bg-blue-500:hover, 
+html:not(.dark) a.bg-blue-600:hover {
+  color: #ffffff !important;  /* Keep white text on hover */
+}
+
 /* Table and list enhancements for light mode */
 html:not(.dark) table th {
   background-color: #f8fafc;
@@ -311,4 +322,20 @@ html:not(.dark) .bg-gray-200 {
 /* Better shadows for light mode */
 html:not(.dark) .shadow-sm {
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
+}
+
+/* Ensure form inputs have dark text in light mode */
+html:not(.dark) input[type="text"],
+html:not(.dark) input[type="number"],
+html:not(.dark) input[type="email"],
+html:not(.dark) textarea,
+html:not(.dark) select,
+html:not(.dark) .form-input {
+  color: #111827 !important; /* Dark text for better visibility */
+}
+
+/* Ensure placeholder text is still distinguishable */
+html:not(.dark) input::placeholder,
+html:not(.dark) textarea::placeholder {
+  color: #9ca3af !important; /* Gray-400 for placeholders */
 }
