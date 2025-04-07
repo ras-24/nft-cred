@@ -167,6 +167,46 @@ export default function NFTDetails() {
                       </p>
                     </div>
                     
+                    {/* Certificate Information Section */}
+                    {nft.metadata && (
+                      <div className="mt-6 border-t border-gray-200 dark:border-gray-700 pt-4">
+                        <h3 className="text-md font-semibold text-gray-900 dark:text-white mb-3">Certificate Information</h3>
+                        <div className="space-y-3">
+                          {nft.metadata.description && (
+                            <div>
+                              <span className="text-gray-500 dark:text-gray-400 text-sm">Description</span>
+                              <p className="text-gray-900 dark:text-white">{nft.metadata.description}</p>
+                            </div>
+                          )}
+                          
+                          {nft.metadata.issuer?.name && (
+                            <div>
+                              <span className="text-gray-500 dark:text-gray-400 text-sm">Issuer</span>
+                              <p className="text-gray-900 dark:text-white">{nft.metadata.issuer.name}</p>
+                            </div>
+                          )}
+                          
+                          {nft.metadata.issue_date && (
+                            <div>
+                              <span className="text-gray-500 dark:text-gray-400 text-sm">Issue Date</span>
+                              <p className="text-gray-900 dark:text-white">
+                                {new Date(nft.metadata.issue_date).toLocaleDateString()}
+                              </p>
+                            </div>
+                          )}
+                          
+                          {nft.metadata.expiry_date && (
+                            <div>
+                              <span className="text-gray-500 dark:text-gray-400 text-sm">Expiry Date</span>
+                              <p className="text-gray-900 dark:text-white">
+                                {new Date(nft.metadata.expiry_date).toLocaleDateString()}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                    
                     {nft.metadata && (
                       <div className="mt-6">
                         <h3 className="text-md font-semibold text-gray-900 dark:text-white mb-2">Metadata</h3>
