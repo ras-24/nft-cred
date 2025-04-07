@@ -3,6 +3,7 @@ import { z } from "zod";
 import { getWalletClient } from "@/app/lib/viemClient";
 import { privateKeyToAccount } from "viem/accounts";
 import NFTCredABI from "@/app/lib/ABI/NFTCredABI.json";
+import { parseUnits } from "viem";
 
 const nftcredContract = process.env.NEXT_PUBLIC_NFTCRED_CONTRACT as `0x${string}`;
 if (!nftcredContract) {
@@ -11,14 +12,13 @@ if (!nftcredContract) {
   );
 }
 
-// ✅ 1. Define Zod schema untuk validasi input
 const loanSchema = z.object({
   contractAddress: z.string().startsWith("0x").length(42),
-  tokenId: z.string().regex(/^\d+$/),
-  loanAmount: z.string().regex(/^\d+$/),
-  duration: z.string().regex(/^\d+$/),
-  ltv: z.string().regex(/^\d+$/),
-  credentialType: z.enum(["0", "1", "2"]), // Ubah ke enum sesuai CredentialType enum di Solidity
+  tokenId: z.coerce.number().int().nonnegative(),
+  loanAmount: z.coerce.number().nonnegative(),
+  duration: z.coerce.number().int().nonnegative(),
+  ltv: z.coerce.number().int().nonnegative(),
+  credentialType: z.coerce.number().int().min(0).max(2),
 });
 
 export async function POST(req: NextRequest) {
@@ -26,12 +26,15 @@ export async function POST(req: NextRequest) {
     const json = await req.json();
     const body = loanSchema.parse(json);
 
-    const account = privateKeyToAccount(
-      process.env.PRIVATE_KEY as `0x${string}`
-    );
+    const rawPrivateKey = process.env.PRIVATE_KEY || "";
+
+    const privateKey = rawPrivateKey.startsWith("0x")
+      ? rawPrivateKey
+      : `0x${rawPrivateKey}`;
+
+    const account = privateKeyToAccount(privateKey as `0x${string}`);
     const client = await getWalletClient(account);
 
-    // ✅ 2. Panggil smart contract
     const txHash = await client.writeContract({
       address: nftcredContract,
       abi: NFTCredABI,
@@ -39,10 +42,10 @@ export async function POST(req: NextRequest) {
       args: [
         body.contractAddress as `0x${string}`,
         BigInt(body.tokenId),
-        BigInt(body.loanAmount),
+        parseUnits(body.loanAmount.toString(), 6),
         BigInt(body.duration),
         BigInt(body.ltv),
-        parseInt(body.credentialType),
+        body.credentialType,
       ],
       account,
     });
