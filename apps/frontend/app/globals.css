@@ -1,26 +1,341 @@
 @import "tailwindcss";
 
+/* Enhanced Light mode variables */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --background: #f8fafc;  /* Slightly off-white for better feel */
+  --foreground: #111827;  /* Darker text for better contrast */
+  --primary: #3b82f6;     /* Vibrant blue */
+  --primary-foreground: #ffffff;
+  --secondary: #4f46e5;   /* Secondary accent color */
+  --card: #ffffff;
+  --card-foreground: #111827;
+  --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --border: #e5e7eb;
+  --muted: #f3f4f6;
+  --muted-foreground: #6b7280;
+  
+  /* Font variables */
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* Dark mode variables */
+.dark {
+  --background: #111827;
+  --foreground: #f3f4f6;
+  --primary: #3b82f6;
+  --primary-foreground: #ffffff;
+  --secondary: #818cf8;
+  --card: #1f2937;
+  --card-foreground: #f3f4f6;
+  --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
+  --border: #374151;
+  --muted: #374151;
+  --muted-foreground: #9ca3af;
+}
+
+/* Base HTML and body styles */
+html {
+  color-scheme: light;
+}
+
+html.dark {
+  color-scheme: dark;
 }
 
 body {
-  background: var(--background);
+  background-color: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), sans-serif;
+  font-feature-settings: "ss01", "ss03";
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Force/Fix specific elements for dark mode */
+html.dark body {
+  background-color: #111827;
+  color: #f3f4f6;
+}
+
+html:not(.dark) body {
+  background-color: var(--background);
+  color: var(--foreground);
+}
+
+/* Light Theme Button Enhancements */
+html:not(.dark) button.bg-gray-100 {
+  background-color: #f1f5f9;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e5e7eb;
+}
+
+html:not(.dark) button.hover\:bg-gray-200:hover {
+  background-color: #e2e8f0;
+}
+
+html:not(.dark) button.bg-blue-500 {
+  background-color: #3b82f6;
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+}
+
+html:not(.dark) button.hover\:bg-blue-600:hover {
+  background-color: #2563eb;
+}
+
+/* Fix the theme toggle and disconnect buttons */
+html:not(.dark) button.p-2.rounded-full {
+  background-color: #f1f5f9;
+  color: #4b5563;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+html:not(.dark) button.p-2.rounded-full:hover {
+  background-color: #e2e8f0;
+  color: #1f2937;
+}
+
+html.dark button.p-2.rounded-full {
+  background-color: #1f2937;
+  color: #e5e7eb;
+  border: 1px solid #374151;
+}
+
+html.dark button.p-2.rounded-full:hover {
+  background-color: #374151;
+  color: #f9fafb;
+}
+
+/* Fix light/dark specific styling */
+.bg-white {
+  background-color: var(--card);
+  box-shadow: var(--card-shadow);
+}
+
+.dark .bg-white {
+  background-color: var(--card);
+  box-shadow: none;
+}
+
+.dark\:bg-gray-900 {
+  background-color: var(--background);
+}
+
+/* Enhanced Card Styling for Light Mode */
+html:not(.dark) .rounded-lg.border {
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+html:not(.dark) .rounded-lg.border:hover {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
+}
+
+/* Fix text color contrast for light mode */
+.text-gray-300:not(.dark *) {
+  color: #4b5563; /* darker than default gray-300 for light mode */
+}
+
+.text-gray-400:not(.dark *) {
+  color: #374151; /* darker than default gray-400 for light mode */
+}
+
+.text-gray-500:not(.dark *) {
+  color: #1f2937; /* darker than default gray-500 for light mode */
+}
+
+/* Ensure light mode specific text colors */
+html:not(.dark) .dark\:text-white {
+  color: var(--foreground);
+}
+
+html:not(.dark) .dark\:text-gray-300 {
+  color: #374151;
+}
+
+html:not(.dark) .dark\:text-gray-400 {
+  color: #1f2937;
+}
+
+/* Enhanced readability for text */
+.text-gray-700 {
+  color: #374151; /* Darker gray for better contrast in light mode */
+}
+
+.dark .dark\:text-gray-300 {
+  color: #d1d5db; /* Lighter gray for better contrast in dark mode */
+}
+
+/* Gradient text support */
+.bg-clip-text {
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+.text-transparent {
+  color: transparent;
+}
+
+/* Link styling enhancement */
+html:not(.dark) a {
+  color: #2563eb;
+  transition: color 0.2s ease;
+}
+
+html:not(.dark) a:hover {
+  color: #1d4ed8;
+}
+
+/* Ensure blue buttons with white text maintain white text color in light mode */
+html:not(.dark) a.bg-blue-500, 
+html:not(.dark) a.bg-blue-600 {
+  color: #ffffff !important;  /* Force white text for blue buttons */
+}
+
+html:not(.dark) a.bg-blue-500:hover, 
+html:not(.dark) a.bg-blue-600:hover {
+  color: #ffffff !important;  /* Keep white text on hover */
+}
+
+/* Table and list enhancements for light mode */
+html:not(.dark) table th {
+  background-color: #f8fafc;
+  color: #111827;
+}
+
+html:not(.dark) table td {
+  border-color: #e5e7eb;
+}
+
+/* Reset transitions for debugging */
+* {
+  transition-duration: 0s !important;
+}
+
+a, button {
+  transition-property: background-color, border-color, color, transform, box-shadow;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms !important;
+}
+
+/* Enhanced Logo Styling for Light Mode */
+html:not(.dark) .logo-text {
+  background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font-weight: 600;
+}
+
+/* Provide better visual distinction for light mode */
+html:not(.dark) .bg-white {
+  background-color: var(--card);
+  box-shadow: var(--card-shadow);
+}
+
+/* Ensure proper card styling in light mode */
+html:not(.dark) .bg-white {
+  background-color: #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+/* Enhanced Card and UI Element styling for Light Mode */
+html:not(.dark) .card-gradient-border {
+  position: relative;
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+html:not(.dark) .card-gradient-border::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: -1px;
+  right: -1px;
+  bottom: -1px;
+  background: linear-gradient(45deg, #3b82f6, #8b5cf6);
+  z-index: -1;
+  border-radius: 0.5rem;
+  opacity: 0.1;
+}
+
+/* Enhanced hover effects for cards and buttons */
+html:not(.dark) .hover\:shadow-md:hover {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* Improve CTA button styling */
+html:not(.dark) a.bg-gradient-to-r {
+  transition: all 0.2s ease;
+}
+
+html:not(.dark) a.bg-gradient-to-r:hover {
+  transform: translateY(-2px);
+}
+
+/* Additional light mode fixes */
+
+/* Force proper styles for buttons in light mode */
+html:not(.dark) button.p-2.rounded-full,
+html:not(.dark) button[aria-label="Disconnect wallet"] {
+  background-color: #f1f5f9 !important;  /* Force light background */
+  color: #4b5563 !important;  /* Force dark text */
+  border-color: #e5e7eb !important;
+}
+
+html:not(.dark) svg {
+  color: inherit;
+}
+
+html:not(.dark) .text-gray-300,
+html:not(.dark) .text-gray-400 {
+  color: #4b5563 !important; /* Ensure text is dark in light mode */
+}
+
+/* Force light mode on navbar elements */
+html:not(.dark) nav {
+  background-color: white !important;
+  color: #111827 !important;
+  border-color: #e5e7eb !important;
+}
+
+/* Ensure theme toggle button is visible */
+html:not(.dark) button[title*="theme"] svg {
+  stroke: #4b5563 !important;
+}
+
+/* Force proper background colors */
+html:not(.dark) .bg-white {
+  background-color: white !important;
+}
+
+html:not(.dark) .bg-gray-100,
+html:not(.dark) .bg-gray-200 {
+  background-color: #f3f4f6 !important;
+}
+
+/* Better shadows for light mode */
+html:not(.dark) .shadow-sm {
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
+}
+
+/* Ensure form inputs have dark text in light mode */
+html:not(.dark) input[type="text"],
+html:not(.dark) input[type="number"],
+html:not(.dark) input[type="email"],
+html:not(.dark) textarea,
+html:not(.dark) select,
+html:not(.dark) .form-input {
+  color: #111827 !important; /* Dark text for better visibility */
+}
+
+/* Ensure placeholder text is still distinguishable */
+html:not(.dark) input::placeholder,
+html:not(.dark) textarea::placeholder {
+  color: #9ca3af !important; /* Gray-400 for placeholders */
 }

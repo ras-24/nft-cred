@@ -144,5 +144,19 @@ export const nftService = {
       console.error('Error fetching registered NFTs:', error);
       throw error;
     }
+  },
+
+  getRegisteredNFT: async (contractAddress: string): Promise<NFT | null> => {
+    try {
+      const response = await fetch(`/api/nft/registered?contractAddress=${contractAddress}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch registered NFT');
+      }
+      const data = await response.json();
+      return data || null;
+    } catch (error) {
+      console.error('Error fetching registered NFT:', error);
+      throw error;
+    }
   }
 };
