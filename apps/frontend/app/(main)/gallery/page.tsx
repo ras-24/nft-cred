@@ -7,6 +7,7 @@ import { fetchNFTs } from '@/app/lib/fetchNFTs';
 import { useWallet } from '@/app/contexts/WalletContext';
 import { NFTBorrowFlow } from '@/app/components/loan/NFTBorrowFlow';
 import { nftService } from '@/app/services/nft';
+import Link from 'next/link';
 
 interface NFT {
   id: string;
@@ -110,6 +111,9 @@ export default function Gallery() {
     return registeredNFTs;
   }, [registeredNFTs, ownedNFTs, showOwnedOnly, walletAddress]);
 
+  // Add state for hovering
+  const [hoveredNFT, setHoveredNFT] = useState<string | null>(null);
+
   if (loading) {
     return <div className="text-center mt-8 text-gray-600">Loading NFTs...</div>;
   }
@@ -163,49 +167,64 @@ export default function Gallery() {
 
           {walletAddress ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {filteredNFTs.map((nft) => (
-                <div
-                  key={nft.uniqueId || `${nft.contractAddress}-${nft.id}`}
-                  className="bg-white dark:bg-gray-800 rounded-lg border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow overflow-hidden"
-                >
-                  <div className="relative w-full pt-[56.25%]">
-                    {!imageErrors[nft.uniqueId || nft.id] ? (
-                      <Image
-                        src={nft.tokenImage}
-                        alt={nft.tokenName}
-                        fill
-                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-                        className="object-contain p-2"
-                        onError={() => handleImageError(nft.uniqueId || nft.id)}
-                        priority={true}
-                      />
-                    ) : (
-                      <div className="absolute inset-0 flex items-center justify-center bg-gray-50 dark:bg-gray-700">
-                        <span className="text-gray-400 dark:text-gray-500">Image not available</span>
-                      </div>
-                    )}
-                  </div>
-                  <div className="p-4">
-                    <h3 className="text-lg font-medium text-gray-800 dark:text-white">{nft.tokenName}</h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      {nft.tickerSymbol}
-                    </p>
-                    <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-                      ID: {nft.id.length > 10 ? `${nft.id.substring(0, 10)}...` : nft.id}
-                    </p>
+              {filteredNFTs.map((nft) => {
+                const nftId = nft.uniqueId || `${nft.contractAddress}-${nft.id}`;
+                return (
+                  <div
+                    key={nftId}
+                    className="bg-white dark:bg-gray-800 rounded-lg border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow overflow-hidden relative group"
+                    onMouseEnter={() => setHoveredNFT(nftId)}
+                    onMouseLeave={() => setHoveredNFT(null)}
+                  >
+                    <div className="relative w-full pt-[56.25%]">
+                      {!imageErrors[nft.uniqueId || nft.id] ? (
+                        <Image
+                          src={nft.tokenImage}
+                          alt={nft.tokenName}
+                          fill
+                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                          className="object-contain p-2"
+                          onError={() => handleImageError(nft.uniqueId || nft.id)}
+                          priority={true}
+                        />
+                      ) : (
+                        <div className="absolute inset-0 flex items-center justify-center bg-gray-50 dark:bg-gray-700">
+                          <span className="text-gray-400 dark:text-gray-500">Image not available</span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="p-4">
+                      <h3 className="text-lg font-medium text-gray-800 dark:text-white">{nft.tokenName}</h3>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        {nft.tickerSymbol}
+                      </p>
+                      <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                        ID: {nft.id.length > 10 ? `${nft.id.substring(0, 10)}...` : nft.id}
+                      </p>
+                    </div>
+                    
+                    {/* Overlay with buttons that appears on hover */}
                     {showOwnedOnly && (
-                      <div className="mt-4">
-                        <button
-                          onClick={() => setSelectedNFT(nft)}
-                          className="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition-colors"
-                        >
-                          Get Loan
-                        </button>
+                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 flex items-center justify-center transition-all duration-300 opacity-0 group-hover:opacity-80">
+                        <div className="flex space-x-3 px-4">
+                          <Link
+                            href={`/gallery/${nftId}`}
+                            className="bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white py-2 px-4 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors text-center cursor-pointer"
+                          >
+                            Details
+                          </Link>
+                          <button
+                            onClick={() => setSelectedNFT(nft)}
+                            className="bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition-colors cursor-pointer"
+                          >
+                            Get Loan
+                          </button>
+                        </div>
                       </div>
                     )}
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           ) : (
             <div className="text-center py-8 text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 rounded-lg p-8">
