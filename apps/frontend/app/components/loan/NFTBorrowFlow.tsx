@@ -298,50 +298,7 @@ export function NFTBorrowFlow({ nft, onClose, onLoanComplete }: NFTBorrowFlowPro
         ? mapCredentialTypeToNumber(estimation.credentialType)
         : 0;
       
-      // Execute lockNFT on the contract - use the correct ABI
-      const lockTx = await executeContractCall(
-        nftCredAddress,
-        ["function lockNFT(address,uint256,uint8)"],
-        'lockNFT',
-        [nft.contractAddress, tokenId, credentialType]
-      );
-      
-      setTxHash(lockTx.hash);
-      
-      toast({
-        children: (
-          <>
-            <ToastTitle>Lock Transaction Submitted</ToastTitle>
-            <ToastDescription>
-              Waiting for confirmation...
-              {process.env.NEXT_PUBLIC_BLOCK_EXPLORER_URL && (
-                <a
-                  href={`${process.env.NEXT_PUBLIC_BLOCK_EXPLORER_URL}/tx/${lockTx.hash}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-500 hover:underline ml-1"
-                >
-                  View on explorer
-                </a>
-              )}
-            </ToastDescription>
-          </>
-        ),
-      });
-      
-      // Wait for the transaction to be mined
-      await lockTx.wait();
-      
-      toast({
-        children: (
-          <>
-            <ToastTitle>NFT Locked Successfully</ToastTitle>
-            <ToastDescription>Creating your loan...</ToastDescription>
-          </>
-        ),
-      });
-
-      // Step 4: Create loan directly using the smart contract
+      // Step 3: Create loan and lock directly
       const requestedAmountString = form.getValues('requestedAmount');
       console.log("Requested amount (string):", requestedAmountString);
       
@@ -380,7 +337,7 @@ export function NFTBorrowFlow({ nft, onClose, onLoanComplete }: NFTBorrowFlowPro
         nftCredAddress,
         NFTCredABI,
         'createLoan',
-        [nft.contractAddress, tokenId, requestedAmount, duration, ltv]
+        [nft.contractAddress, tokenId, requestedAmount, duration, ltv, credentialType]
       );
       
       setTxHash(createLoanTx.hash);
