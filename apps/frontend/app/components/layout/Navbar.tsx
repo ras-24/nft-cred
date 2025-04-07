@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useTheme } from '../ThemeProvider';
@@ -10,12 +10,33 @@ export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { theme, toggleTheme, isDark } = useTheme();
   const { isConnected, walletAddress, usdcBalance, connectWallet, disconnectWallet, refreshBalance } = useWallet();
+  const [isRefreshingBalance, setIsRefreshingBalance] = useState(false);
+  const [prevBalance, setPrevBalance] = useState('0');
 
   // Format USDC balance with commas and fixed to 2 decimal places
   const formattedBalance = parseFloat(usdcBalance || '0').toLocaleString('en-US', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
   });
+
+  // Track balance changes to trigger animation
+  useEffect(() => {
+    if (usdcBalance !== prevBalance && prevBalance !== '0') {
+      setIsRefreshingBalance(true);
+      const timer = setTimeout(() => {
+        setIsRefreshingBalance(false);
+      }, 1500); // Animation duration
+      return () => clearTimeout(timer);
+    }
+    setPrevBalance(usdcBalance || '0');
+  }, [usdcBalance, prevBalance]);
+
+  // Handle balance refresh click
+  const handleRefreshBalance = async () => {
+    setIsRefreshingBalance(true);
+    await refreshBalance();
+    // Animation will be handled by the effect above
+  };
 
   const handleThemeToggle = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -96,7 +117,7 @@ export default function Navbar() {
           </div>
           <div className="flex items-center space-x-4">
             {/* Theme Toggle Button */}
-            <button
+            {/* <button
               onClick={handleThemeToggle}
               className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300"
               title={`Switch to ${isDark ? 'light' : 'dark'} theme`}
@@ -110,7 +131,7 @@ export default function Navbar() {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z" />
                 </svg>
               )}
-            </button>
+            </button> */}
             
             {/* Mobile menu button */}
             <button
@@ -155,17 +176,26 @@ export default function Navbar() {
               </svg>
             </button>
             
-            {/* USDC Balance Display */}
+            {/* USDC Balance Display with Refresh Animation */}
             {isConnected && (
-              <div className="hidden md:flex items-center space-x-1 bg-blue-50 dark:bg-blue-900/30 px-3 py-1 rounded-full">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-blue-500 dark:text-blue-400">
+              <div 
+                className={`hidden md:flex items-center space-x-1 bg-blue-50 dark:bg-blue-900/30 px-3 py-1 rounded-full cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-all duration-200 group ${isRefreshingBalance ? 'balance-refreshing' : ''}`}
+                onClick={handleRefreshBalance}
+                title="Click to refresh balance"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={`w-4 h-4 text-blue-500 dark:text-blue-400 ${isRefreshingBalance ? 'spin-once' : 'group-hover:rotate-12 transition-transform'}`}>
                   <path d="M12 7.5a2.25 2.25 0 100 4.5 2.25 2.25 0 000-4.5z" />
                   <path fillRule="evenodd" d="M1.5 4.875C1.5 3.839 2.34 3 3.375 3h17.25c1.035 0 1.875.84 1.875 1.875v9.75c0 1.036-.84 1.875-1.875 1.875H3.375A1.875 1.875 0 011.5 14.625v-9.75zM8.25 9.75a3.75 3.75 0 117.5 0 3.75 3.75 0 01-7.5 0zM18.75 9a.75.75 0 00-.75.75v.008c0 .414.336.75.75.75h.008a.75.75 0 00.75-.75V9.75a.75.75 0 00-.75-.75h-.008zM4.5 9.75A.75.75 0 015.25 9h.008a.75.75 0 01.75.75v.008a.75.75 0 01-.75.75H5.25a.75.75 0 01-.75-.75V9.75z" clipRule="evenodd" />
                   <path d="M2.25 18a.75.75 0 000 1.5c5.4 0 10.63.722 15.6 2.075 1.19.324 2.4-.558 2.4-1.82V18.75a.75.75 0 00-.75-.75H2.25z" />
                 </svg>
-                <span className="text-sm font-medium text-gray-700 dark:text-gray-300" title="Click to refresh" onClick={refreshBalance}>
+                <span className={`text-sm font-medium text-gray-700 dark:text-gray-300 ${isRefreshingBalance ? 'fade-transition' : ''}`}>
                   {formattedBalance} USDC
                 </span>
+                {isRefreshingBalance && (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="loading-dots"></span>
+                  </div>
+                )}
               </div>
             )}
             
@@ -200,13 +230,16 @@ export default function Navbar() {
         >
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 border-t border-gray-100 dark:border-gray-800">
             {isConnected && (
-              <div className="flex items-center space-x-2 px-3 py-2 text-gray-600 dark:text-gray-300">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-blue-500 dark:text-blue-400">
+              <div 
+                className={`flex items-center space-x-2 px-3 py-2 text-gray-600 dark:text-gray-300 ${isRefreshingBalance ? 'balance-refreshing' : ''}`}
+                onClick={handleRefreshBalance}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={`w-4 h-4 text-blue-500 dark:text-blue-400 ${isRefreshingBalance ? 'spin-once' : ''}`}>
                   <path d="M12 7.5a2.25 2.25 0 100 4.5 2.25 2.25 0 000-4.5z" />
                   <path fillRule="evenodd" d="M1.5 4.875C1.5 3.839 2.34 3 3.375 3h17.25c1.035 0 1.875.84 1.875 1.875v9.75c0 1.036-.84 1.875-1.875 1.875H3.375A1.875 1.875 0 011.5 14.625v-9.75zM8.25 9.75a3.75 3.75 0 117.5 0 3.75 3.75 0 01-7.5 0zM18.75 9a.75.75 0 00-.75.75v.008c0 .414.336.75.75.75h.008a.75.75 0 00.75-.75V9.75a.75.75 0 00-.75-.75h-.008zM4.5 9.75A.75.75 0 015.25 9h.008a.75.75 0 01.75.75v.008a.75.75 0 01-.75.75H5.25a.75.75 0 01-.75-.75V9.75z" clipRule="evenodd" />
                   <path d="M2.25 18a.75.75 0 000 1.5c5.4 0 10.63.722 15.6 2.075 1.19.324 2.4-.558 2.4-1.82V18.75a.75.75 0 00-.75-.75H2.25z" />
                 </svg>
-                <span className="text-sm font-medium" onClick={refreshBalance}>
+                <span className={`text-sm font-medium ${isRefreshingBalance ? 'fade-transition' : ''}`}>
                   {formattedBalance} USDC
                 </span>
               </div>
@@ -218,7 +251,7 @@ export default function Navbar() {
             >
               NFT Gallery
             </Link>
-            <Link
+            {/* <Link
               href="/lend"
               className="text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800 block px-3 py-2 rounded-md text-base font-medium"
               onClick={() => setMobileMenuOpen(false)}
@@ -236,11 +269,11 @@ export default function Navbar() {
               href="/transactions"
               className="text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800 block px-3 py-2 rounded-md text-base font-medium"
               onClick={() => setMobileMenuOpen(false)}
-            >
+            > */}
               Transactions
-            </Link>
+            {/* </Link> */}
             {/* Mobile Theme Toggle */}
-            <button
+            {/* <button
               onClick={handleThemeToggle}
               className="flex w-full items-center text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800 px-3 py-2 rounded-md text-base font-medium"
             >
@@ -259,12 +292,12 @@ export default function Navbar() {
                   Dark Mode
                 </>
               )}
-            </button>
+            </button> */}
           </div>
         </div>
       </div>
       
-      {/* Add styles for light mode logo */}
+      {/* Add styles for light mode logo and balance animations */}
       <style jsx>{`
         .light-mode-only {
           opacity: 0.1;
@@ -295,6 +328,59 @@ export default function Navbar() {
         
         html.dark .light-mode-only {
           display: none;
+        }
+        
+        /* Balance refresh animations */
+        .balance-refreshing {
+          position: relative;
+          background-color: rgba(59, 130, 246, 0.1);
+        }
+        
+        .fade-transition {
+          animation: fadeInOut 1.5s ease-in-out;
+        }
+        
+        .spin-once {
+          animation: spinOnce 1.5s ease;
+        }
+        
+        @keyframes fadeInOut {
+          0% { opacity: 1; }
+          50% { opacity: 0.3; }
+          100% { opacity: 1; }
+        }
+        
+        @keyframes spinOnce {
+          0% { transform: rotate(0deg); }
+          50% { transform: rotate(180deg); }
+          100% { transform: rotate(360deg); }
+        }
+        
+        .loading-dots {
+          position: relative;
+          width: 10px;
+          height: 10px;
+        }
+        
+        .loading-dots::before,
+        .loading-dots::after {
+          content: '';
+          position: absolute;
+          width: 3px;
+          height: 3px;
+          border-radius: 50%;
+          background-color: #3b82f6;
+          animation: dotPulse 1.5s infinite;
+        }
+        
+        .loading-dots::after {
+          animation-delay: 0.5s;
+          left: 6px;
+        }
+        
+        @keyframes dotPulse {
+          0%, 100% { opacity: 0.2; transform: scale(1); }
+          50% { opacity: 1; transform: scale(1.5); }
         }
       `}</style>
     </nav>
