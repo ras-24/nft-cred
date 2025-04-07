@@ -274,11 +274,6 @@ export default function BorrowPage() {
         console.warn("Creating credential without credentialTypeId - this may cause issues");
       }
       
-      // Ensure wallet is connected
-      if (!isConnected) {
-        await connectWallet();
-      }
-      
       // Get lending contract address
       toast({
         children: (
@@ -302,7 +297,7 @@ export default function BorrowPage() {
         ),
       });
 
-      // Execute the approval transaction
+      // Execute the approval transaction - This will automatically connect if needed
       const tx = await executeContractCall(
         nft.contractAddress,
         ["function approve(address, uint256)"],

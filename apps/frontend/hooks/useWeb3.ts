@@ -47,11 +47,11 @@ export function useWeb3() {
     }
   }, []);
 
-  // Connect wallet function
+  // Connect wallet function - now returns the signer
   const connectWallet = useCallback(async () => {
     if (!provider || !window.ethereum) {
       setError('No provider available');
-      return;
+      throw new Error('No provider available');
     }
 
     try {
@@ -65,29 +65,60 @@ export function useWeb3() {
         const { chainId } = await provider.getNetwork();
         setChainId(Number(chainId));
         setError(null);
+        
+        // Return the signer so it can be used immediately
+        return web3Signer;
       }
+      throw new Error('No accounts returned from wallet');
     } catch (err) {
       console.error('Failed to connect wallet:', err);
       setError(err instanceof Error ? err.message : 'Failed to connect wallet');
+      throw err;
     }
   }, [provider]);
 
-  // Function to execute contract calls
+  // Function to get a signer, connecting if needed
+  const ensureSigner = useCallback(async () => {
+    if (signer) return signer;
+    
+    if (!provider) {
+      throw new Error('Provider not available');
+    }
+    
+    // Try to get accounts without prompting
+    try {
+      const accounts = await provider.listAccounts();
+      if (accounts.length > 0) {
+        // User is already connected, just get the signer
+        const web3Signer = await provider.getSigner();
+        setSigner(web3Signer);
+        setAccount(accounts[0].address);
+        setIsConnected(true);
+        return web3Signer;
+      }
+    } catch (e) {
+      // Silently fail and continue to connect flow
+    }
+    
+    // Need to connect
+    return await connectWallet();
+  }, [provider, signer, connectWallet]);
+
+  // Function to execute contract calls - now ensures signer before proceeding
   const executeContractCall = useCallback(async (
     contractAddress: string,
     abi: any[],
     method: string,
     args: any[]
   ) => {
-    if (!signer) {
-      throw new Error('Wallet not connected');
-    }
-
+    // Get or establish a signer
+    const currentSigner = await ensureSigner();
+    
     console.log('Executing contract call:', { contractAddress, method, args });
-    const contract = new ethers.Contract(contractAddress, abi, signer);
+    const contract = new ethers.Contract(contractAddress, abi, currentSigner);
     const tx = await contract[method](...args);
     return tx;
-  }, [signer]);
+  }, [ensureSigner]);
 
   return {
     account,
