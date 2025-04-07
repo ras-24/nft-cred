@@ -6,7 +6,6 @@ import { useRouter } from 'next/navigation';
 import Navbar from '@/app/components/layout/Navbar';
 import { fetchNFTs } from '@/app/lib/fetchNFTs';
 import { useWallet } from '@/app/contexts/WalletContext';
-import { NFTBorrowFlow } from '@/app/components/loan/NFTBorrowFlow';
 import { nftService } from '@/app/services/nft';
 import Link from 'next/link';
 
