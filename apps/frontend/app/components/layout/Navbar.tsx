@@ -25,11 +25,32 @@ export default function Navbar() {
     console.log('Current theme (DOM check):', isDarkNow ? 'dark' : 'light');
     
     if (isDarkNow) {
+      // Switching to light mode
       document.documentElement.classList.remove('dark');
       document.documentElement.dataset.theme = 'light';
+      
+      // Force immediate style updates for critical elements
+      document.querySelectorAll('button.p-2.rounded-full').forEach(button => {
+        button.classList.remove('dark-button');
+        button.classList.add('light-button');
+        (button as HTMLElement).style.backgroundColor = '#f1f5f9';
+        (button as HTMLElement).style.color = '#4b5563';
+        (button as HTMLElement).style.borderColor = '#e5e7eb';
+      });
+      
     } else {
+      // Switching to dark mode
       document.documentElement.classList.add('dark');
       document.documentElement.dataset.theme = 'dark';
+      
+      // Force immediate style updates for critical elements
+      document.querySelectorAll('button.p-2.rounded-full').forEach(button => {
+        button.classList.add('dark-button');
+        button.classList.remove('light-button');
+        (button as HTMLElement).style.backgroundColor = '#1f2937';
+        (button as HTMLElement).style.color = '#e5e7eb';
+        (button as HTMLElement).style.borderColor = '#374151';
+      });
     }
     
     // Allow any direct DOM effects to apply

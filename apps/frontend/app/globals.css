@@ -162,6 +162,25 @@ html:not(.dark) .dark\:text-gray-400 {
   color: #1f2937;
 }
 
+/* Enhanced readability for text */
+.text-gray-700 {
+  color: #374151; /* Darker gray for better contrast in light mode */
+}
+
+.dark .dark\:text-gray-300 {
+  color: #d1d5db; /* Lighter gray for better contrast in dark mode */
+}
+
+/* Gradient text support */
+.bg-clip-text {
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+.text-transparent {
+  color: transparent;
+}
+
 /* Link styling enhancement */
 html:not(.dark) a {
   color: #2563eb;
@@ -208,6 +227,12 @@ html:not(.dark) .bg-white {
   box-shadow: var(--card-shadow);
 }
 
+/* Ensure proper card styling in light mode */
+html:not(.dark) .bg-white {
+  background-color: #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
 /* Enhanced Card and UI Element styling for Light Mode */
 html:not(.dark) .card-gradient-border {
   position: relative;
@@ -226,4 +251,64 @@ html:not(.dark) .card-gradient-border::before {
   z-index: -1;
   border-radius: 0.5rem;
   opacity: 0.1;
+}
+
+/* Enhanced hover effects for cards and buttons */
+html:not(.dark) .hover\:shadow-md:hover {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* Improve CTA button styling */
+html:not(.dark) a.bg-gradient-to-r {
+  transition: all 0.2s ease;
+}
+
+html:not(.dark) a.bg-gradient-to-r:hover {
+  transform: translateY(-2px);
+}
+
+/* Additional light mode fixes */
+
+/* Force proper styles for buttons in light mode */
+html:not(.dark) button.p-2.rounded-full,
+html:not(.dark) button[aria-label="Disconnect wallet"] {
+  background-color: #f1f5f9 !important;  /* Force light background */
+  color: #4b5563 !important;  /* Force dark text */
+  border-color: #e5e7eb !important;
+}
+
+html:not(.dark) svg {
+  color: inherit;
+}
+
+html:not(.dark) .text-gray-300,
+html:not(.dark) .text-gray-400 {
+  color: #4b5563 !important; /* Ensure text is dark in light mode */
+}
+
+/* Force light mode on navbar elements */
+html:not(.dark) nav {
+  background-color: white !important;
+  color: #111827 !important;
+  border-color: #e5e7eb !important;
+}
+
+/* Ensure theme toggle button is visible */
+html:not(.dark) button[title*="theme"] svg {
+  stroke: #4b5563 !important;
+}
+
+/* Force proper background colors */
+html:not(.dark) .bg-white {
+  background-color: white !important;
+}
+
+html:not(.dark) .bg-gray-100,
+html:not(.dark) .bg-gray-200 {
+  background-color: #f3f4f6 !important;
+}
+
+/* Better shadows for light mode */
+html:not(.dark) .shadow-sm {
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
 }

@@ -35,7 +35,23 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     } else {
       htmlEl.classList.remove('dark');
       document.body.dataset.theme = 'light';
+      
+      // Force critical elements to light mode
+      document.querySelectorAll('button.p-2.rounded-full').forEach(button => {
+        (button as HTMLElement).style.backgroundColor = '#f1f5f9';
+        (button as HTMLElement).style.color = '#4b5563';
+        (button as HTMLElement).style.borderColor = '#e5e7eb';
+      });
     }
+    
+    // Force immediate recalculation by using a small timeout 
+    setTimeout(() => {
+      if (newTheme === 'dark') {
+        document.body.style.backgroundColor = 'rgb(17, 24, 39)';
+      } else {
+        document.body.style.backgroundColor = 'rgb(255, 255, 255)';
+      }
+    }, 10);
     
     // Force immediate recalculation for light/dark specific elements
     const buttons = document.querySelectorAll('button.p-2.rounded-full');

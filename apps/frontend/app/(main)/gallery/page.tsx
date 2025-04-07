@@ -123,20 +123,43 @@ export default function Gallery() {
       <Navbar />
       <main className="pt-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         <div className="py-8">
-          <div className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl font-medium text-gray-800 dark:text-white">NFT Gallery</h1>
-            <div className="flex items-center space-x-4">
-              <label className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  checked={showOwnedOnly}
-                  onChange={(e) => setShowOwnedOnly(e.target.checked)}
-                  className="form-checkbox h-4 w-4 text-blue-500 border-gray-300 rounded"
-                />
-                <span className="text-gray-700 dark:text-gray-300">Show Owned NFTs Only</span>
-              </label>
-            </div>
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+            <h1 className="text-2xl font-bold text-gray-800 dark:text-white">NFT Gallery</h1>
+            
+            {!walletAddress ? (
+              <div className="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-lg">
+                <p className="text-blue-600 dark:text-blue-400 font-medium">
+                  Connect your wallet to view your NFTs and start borrowing
+                </p>
+              </div>
+            ) : (
+              <div className="flex items-center space-x-4">
+                <label className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    checked={showOwnedOnly}
+                    onChange={(e) => setShowOwnedOnly(e.target.checked)}
+                    className="form-checkbox h-4 w-4 text-blue-500 border-gray-300 rounded"
+                  />
+                  <span className="text-gray-700 dark:text-gray-300 font-medium">Show My NFTs Only</span>
+                </label>
+              </div>
+            )}
           </div>
+
+          {/* Gallery welcome section - only shown when connected */}
+          {walletAddress && (
+            <div className="mb-8 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 p-6 rounded-xl border border-blue-100 dark:border-indigo-800/30">
+              <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-2">
+                {showOwnedOnly ? 'Your NFT Collection' : 'Supported NFT Collections'}
+              </h2>
+              <p className="text-gray-700 dark:text-gray-300">
+                {showOwnedOnly 
+                  ? 'Select one of your NFTs to use as collateral and get an instant loan.' 
+                  : 'Browse all supported NFT collections. Toggle to view only your owned NFTs.'}
+              </p>
+            </div>
+          )}
 
           {walletAddress ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
