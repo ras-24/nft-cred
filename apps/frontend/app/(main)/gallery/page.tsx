@@ -111,29 +111,29 @@ export default function Gallery() {
   }, [registeredNFTs, ownedNFTs, showOwnedOnly, walletAddress]);
 
   if (loading) {
-    return <div className="text-center mt-8">Loading NFTs...</div>;
+    return <div className="text-center mt-8 text-gray-600">Loading NFTs...</div>;
   }
 
   if (error) {
-    return <div className="text-center mt-8 text-red-500">{error}</div>;
+    return <div className="text-center mt-8 text-red-400">{error}</div>;
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-white">
       <Navbar />
       <main className="pt-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         <div className="py-8">
           <div className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">NFT Gallery</h1>
+            <h1 className="text-2xl font-medium text-gray-800">NFT Gallery</h1>
             <div className="flex items-center space-x-4">
               <label className="flex items-center space-x-2">
                 <input
                   type="checkbox"
                   checked={showOwnedOnly}
                   onChange={(e) => setShowOwnedOnly(e.target.checked)}
-                  className="form-checkbox h-4 w-4 text-blue-600"
+                  className="form-checkbox h-4 w-4 text-blue-500 border-gray-300 rounded"
                 />
-                <span className="text-gray-900 dark:text-gray-300">Show Owned NFTs Only</span>
+                <span className="text-gray-700">Show Owned NFTs Only</span>
               </label>
             </div>
           </div>
@@ -142,40 +142,39 @@ export default function Gallery() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {filteredNFTs.map((nft) => (
                 <div
-                  // Use uniqueId property if available, otherwise fall back to regular id
                   key={nft.uniqueId || `${nft.contractAddress}-${nft.id}`}
-                  className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden"
+                  className="bg-white rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition-shadow overflow-hidden"
                 >
-                  <div className="relative w-full pt-[56.25%]"> {/* 16:9 aspect ratio container */}
+                  <div className="relative w-full pt-[56.25%]">
                     {!imageErrors[nft.uniqueId || nft.id] ? (
                       <Image
                         src={nft.tokenImage}
                         alt={nft.tokenName}
                         fill
                         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-                        className="object-contain p-2" // Changed to object-contain with padding
+                        className="object-contain p-2"
                         onError={() => handleImageError(nft.uniqueId || nft.id)}
                         priority={true}
                       />
                     ) : (
-                      <div className="absolute inset-0 flex items-center justify-center bg-gray-100 dark:bg-gray-700">
-                        <span className="text-gray-500 dark:text-gray-400">Image not available</span>
+                      <div className="absolute inset-0 flex items-center justify-center bg-gray-50">
+                        <span className="text-gray-400">Image not available</span>
                       </div>
                     )}
                   </div>
                   <div className="p-4">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{nft.tokenName}</h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                    <h3 className="text-lg font-medium text-gray-800">{nft.tokenName}</h3>
+                    <p className="text-sm text-gray-500">
                       {nft.tickerSymbol}
                     </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    <p className="text-xs text-gray-400 mt-1">
                       ID: {nft.id.length > 10 ? `${nft.id.substring(0, 10)}...` : nft.id}
                     </p>
                     {showOwnedOnly && (
                       <div className="mt-4">
                         <button
                           onClick={() => setSelectedNFT(nft)}
-                          className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors"
+                          className="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition-colors"
                         >
                           Get Loan
                         </button>
@@ -186,19 +185,19 @@ export default function Gallery() {
               ))}
             </div>
           ) : (
-            <div className="text-center py-8 text-gray-600 dark:text-gray-400">
+            <div className="text-center py-8 text-gray-500 bg-gray-50 rounded-lg p-8">
               <p>Please connect your wallet to view your NFTs</p>
             </div>
           )}
         </div>
 
         {selectedNFT && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center p-4 backdrop-blur-sm">
             <div className="max-w-3xl w-full">
               <NFTBorrowFlow
                 nft={selectedNFT}
                 onClose={() => setSelectedNFT(null)}
-                onLoanComplete={refreshNFTs} // Pass the refresh function
+                onLoanComplete={refreshNFTs}
               />
             </div>
           </div>

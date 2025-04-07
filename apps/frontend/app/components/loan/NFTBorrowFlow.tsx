@@ -411,19 +411,19 @@ export function NFTBorrowFlow({ nft, onClose, onLoanComplete }: NFTBorrowFlowPro
   };
 
   return (
-    <Card className="p-6 mt-20">
+    <Card className="p-6 mt-20 bg-white shadow-md border border-gray-100 rounded-xl">
       <div className="mb-6">
-        <h2 className="text-2xl font-bold mb-2">Borrow Against Your NFT</h2>
-        <p className="text-gray-600">{nft.tokenName}</p>
+        <h2 className="text-2xl font-medium mb-2 text-gray-800">Borrow Against Your NFT</h2>
+        <p className="text-gray-500">{nft.tokenName}</p>
       </div>
 
       {isInitializing ? (
         <div className="flex items-center justify-center py-6">
-          <svg className="animate-spin h-10 w-10 text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <svg className="animate-spin h-10 w-10 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
           </svg>
-          <span className="ml-3">Initializing loan parameters...</span>
+          <span className="ml-3 text-gray-600">Initializing loan parameters...</span>
         </div>
       ) : (
         <>
@@ -438,10 +438,11 @@ export function NFTBorrowFlow({ nft, onClose, onLoanComplete }: NFTBorrowFlowPro
                     name="duration"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Duration (Days)</FormLabel>
+                        <FormLabel className="text-gray-700">Duration (Days)</FormLabel>
                         <FormControl>
                           <Input 
                             type="number" 
+                            className="border-gray-200 focus:border-blue-500 focus:ring-blue-500"
                             {...field} 
                             onChange={(e) => {
                               field.onChange(e);
@@ -460,8 +461,8 @@ export function NFTBorrowFlow({ nft, onClose, onLoanComplete }: NFTBorrowFlowPro
                     render={({ field }) => (
                       <FormItem>
                         <div className="flex justify-between items-center">
-                          <FormLabel>Requested Amount (USDC)</FormLabel>
-                          <span className="text-xs text-muted-foreground">
+                          <FormLabel className="text-gray-700">Requested Amount (USDC)</FormLabel>
+                          <span className="text-xs text-gray-500">
                             Max: {maxLoanAmount.toFixed(6)} USDC
                           </span>
                         </div>
@@ -482,6 +483,7 @@ export function NFTBorrowFlow({ nft, onClose, onLoanComplete }: NFTBorrowFlowPro
                             <Input
                               type="number"
                               step="0.0001" 
+                              className="border-gray-200 focus:border-blue-500 focus:ring-blue-500"
                               {...field}
                               onChange={(e) => {
                                 const value = parseFloat(e.target.value);
@@ -505,10 +507,10 @@ export function NFTBorrowFlow({ nft, onClose, onLoanComplete }: NFTBorrowFlowPro
             </div>
             
             {/* Right Column - Loan Details */}
-            <div className="space-y-4 border rounded p-4">
-              <h3 className="font-semibold text-lg">Loan Details</h3>
+            <div className="space-y-4 border rounded p-4 border-gray-100 bg-gray-50">
+              <h3 className="font-medium text-lg text-gray-800">Loan Details</h3>
               {estimation && (
-                <div className="space-y-2">
+                <div className="space-y-2 text-gray-600">
                   <p>Credential Type: {estimation.credentialType}</p>
                   <p>Base Price: {estimation.basePrice} USDC</p>
                   <p>LTV: {estimation.ltv}%</p>
@@ -517,8 +519,8 @@ export function NFTBorrowFlow({ nft, onClose, onLoanComplete }: NFTBorrowFlowPro
                   <p>Interest: {estimation.interest} USDC</p>
                   <p>Total Loan: {estimation.totalLoan} USDC</p>
                   <p>Contract Balance: {contractBalance} USDC</p>
-                  <div className="mt-4 pt-4 border-t">
-                    <p className="font-semibold">You're requesting: {form.watch('requestedAmount')} USDC</p>
+                  <div className="mt-4 pt-4 border-t border-gray-100">
+                    <p className="font-medium text-gray-800">You're requesting: {form.watch('requestedAmount')} USDC</p>
                   </div>
                 </div>
               )}
@@ -527,9 +529,9 @@ export function NFTBorrowFlow({ nft, onClose, onLoanComplete }: NFTBorrowFlowPro
           </div>
           
           {approvalStatus === 'pending' && (
-            <div className="bg-yellow-50 p-4 rounded-md border border-yellow-200">
-              <p className="flex items-center text-amber-700">
-                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-amber-700" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <div className="bg-yellow-50 p-4 rounded-md border border-yellow-100 my-4">
+              <p className="flex items-center text-yellow-700">
+                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-yellow-700" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
@@ -541,7 +543,7 @@ export function NFTBorrowFlow({ nft, onClose, onLoanComplete }: NFTBorrowFlowPro
                   href={`${process.env.NEXT_PUBLIC_BLOCK_EXPLORER_URL}/tx/${txHash}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-blue-600 hover:underline text-sm mt-2 block"
+                  className="text-blue-500 hover:underline text-sm mt-2 block"
                 >
                   View transaction on block explorer
                 </a>
@@ -551,7 +553,7 @@ export function NFTBorrowFlow({ nft, onClose, onLoanComplete }: NFTBorrowFlowPro
           
           <Button 
             onClick={handleCreateLoan} 
-            className="w-full" 
+            className="w-full bg-blue-500 hover:bg-blue-600 mt-4" 
             disabled={isLoading || approvalStatus === 'pending' || parseFloat(form.getValues('requestedAmount')) <= 0}
           >
             {isLoading ? "Processing..." : approvalStatus === 'success' ? "Creating Loan..." : "Create Loan"}
@@ -560,12 +562,11 @@ export function NFTBorrowFlow({ nft, onClose, onLoanComplete }: NFTBorrowFlowPro
           <Button
             variant="outline"
             onClick={onClose}
-            className="w-full"
+            className="w-full mt-2 border-gray-200 text-gray-700 hover:bg-gray-50"
             disabled={isLoading}
           >
             Cancel
           </Button>
-        {/* </div> */}
         </>
       )}
     </Card>

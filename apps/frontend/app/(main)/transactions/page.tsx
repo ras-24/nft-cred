@@ -60,24 +60,24 @@ export default function TransactionsPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-white">
       <Navbar />
       <main className="pt-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         <div className="py-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">
+          <h1 className="text-2xl font-medium text-gray-800 mb-8">
             Transactions
           </h1>
 
           {loading ? (
-            <div className="text-center text-gray-600 dark:text-gray-400">
+            <div className="text-center text-gray-500 p-8">
               Loading transactions...
             </div>
           ) : error ? (
-            <div className="text-center text-red-600 dark:text-red-400">
+            <div className="text-center text-red-400 p-8">
               {error}
             </div>
           ) : transactions.length === 0 ? (
-            <div className="text-center text-gray-600 dark:text-gray-400">
+            <div className="text-center text-gray-500 bg-gray-50 p-8 rounded-lg">
               No transactions found
             </div>
           ) : (
@@ -85,20 +85,20 @@ export default function TransactionsPage() {
               {transactions.map((transaction) => (
                 <div
                   key={transaction.id}
-                  className="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-6"
+                  className="bg-white border border-gray-100 shadow-sm hover:shadow-md transition-shadow rounded-lg p-6"
                 >
                   <div className="flex justify-between items-start">
                     <div>
-                      <div className="text-lg font-semibold text-gray-900 dark:text-white">
+                      <div className="text-lg font-medium text-gray-800">
                         {transaction.txType}
                       </div>
-                      <div className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                      <div className="mt-1 text-sm text-gray-600">
                         Amount: {transaction.amount}
                       </div>
-                      <div className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                      <div className="mt-1 text-sm text-gray-600">
                         From: {transaction.from}
                       </div>
-                      <div className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                      <div className="mt-1 text-sm text-gray-600">
                         To: {transaction.to}
                       </div>
                     </div>
@@ -106,15 +106,15 @@ export default function TransactionsPage() {
                       <span
                         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                           transaction.status === 'completed'
-                            ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                            ? 'bg-green-50 text-green-700'
                             : transaction.status === 'pending'
-                            ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
-                            : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                            ? 'bg-yellow-50 text-yellow-700'
+                            : 'bg-red-50 text-red-700'
                         }`}
                       >
                         {transaction.status}
                       </span>
-                      <div className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                      <div className="mt-1 text-sm text-gray-500">
                         {new Date(transaction.date).toLocaleDateString()}
                       </div>
                     </div>
