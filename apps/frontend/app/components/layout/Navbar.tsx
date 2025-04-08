@@ -100,7 +100,7 @@ export default function Navbar() {
                   className="dark:invert relative z-10"
                 />
               </div>
-              <span className="text-xl font-medium text-gray-800 light-mode-logo">NFT Cred</span>
+              <span className="text-xl font-medium text-gray-800 light-mode-logo">NFTCred</span>
             </Link>
             <div className="hidden md:flex ml-10 space-x-8">
               <Link
