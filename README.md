@@ -1,5 +1,5 @@
 # nft-cred
-Turn NFTs into Borrowing Power
+Turn Credential NFTs into Borrowing Power
 
 ## Getting Started
 This guide walks through setting up the project locally and deploying the MockNFT contract for testing.
